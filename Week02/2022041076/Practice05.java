@@ -1,6 +1,6 @@
 package Sample;
 
-public class Practice5{
+public class Practice05{
 	public static void main(String[] args) {
 		int a = 3, b =3,c=3;
 		
@@ -20,4 +20,5 @@ public class Practice5{
 		a=--d;
 		System.out.println("a="+a+",d="+d);
 	}
+
 }
