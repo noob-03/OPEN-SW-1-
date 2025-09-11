@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice8{
+public class Practice08{
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
 		System.out.print("점수를 입력하시오:");
@@ -12,4 +12,5 @@ public class Practice8{
 		
 		scanner.close();
 	}
+
 }
