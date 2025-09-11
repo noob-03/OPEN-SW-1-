@@ -17,7 +17,7 @@ public class ScannerEx{
         double weight = scanner.nextDouble(); // 실수읽기
         System.out.print("체중은" + weight + "kg, ");
 
-        booleansingle = scanner.nextBoolean(); // 논리값읽기
+        boolean single = scanner.nextBoolean(); // 논리값읽기
         System.out.println("독신여부는" + single + "입니다.");
         
         scanner.close(); // scanner 닫기
