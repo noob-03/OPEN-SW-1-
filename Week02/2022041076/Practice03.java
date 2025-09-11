@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice3{
+public class Practice03{
 	public static void main(String args[]) {
 		System.out.println("이름, 도시, 나이, 체중, 독신여부를 빈칸으로 분리하여 입력하세요");
 		Scanner scanner = new Scanner(System.in);
@@ -24,4 +24,5 @@ public class Practice3{
 		
 		scanner.close();
 	}
+
 }
