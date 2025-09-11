@@ -7,7 +7,8 @@ public class Hello2025 {
 		System.out.print("점수를입력하시오: ");
 		int score = scanner.nextInt();
 		if (score >= 80)
-		System.out.println("축하합니다! 합격입니다.");
+			System.out.println("축하합니다! 합격입니다.");
+		
 		scanner.close();
 	}
 }
