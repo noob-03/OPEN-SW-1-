@@ -1,6 +1,6 @@
 package Sample;
 
-public class Practice2{
+public class Practice02{
 	public static void main(String[] args) {
 	byte b = 127;
 	int i= 100;
@@ -13,4 +13,5 @@ public class Practice2{
 	System.out.println((int)(2.9 + 1.8));
 	System.out.println((int)2.9 + (int)1.8);
 	}
+
 }
