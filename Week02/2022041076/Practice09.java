@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice9{
+public class Practice09{
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 		
@@ -16,4 +16,5 @@ public class Practice9{
 		
 		in.close();
 	}
+
 }
