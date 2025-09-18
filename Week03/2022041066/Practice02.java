@@ -1,1 +1,32 @@
+//-1이입력될때까지 정수를 계속 입력받아 합을 구하고 평균을 출력하는 프로그램
 
+
+import java.util.Scanner;
+public class WhileSample{
+    public static void main(String[] args) {
+        int count=0; // count는입력된정수의개수
+        int sum=0; // sum은합
+        Scanner scanner= new Scanner(System.in);
+        System.out.println("정수를입력하고마지막에-1을입력하세요.");
+        System.out.print(">>");
+        int n = scanner.nextInt(); // 정수입력
+        while(n != -1) { // -1이입력되면while 문벗어남
+            sum += n;
+            count++;
+            n = scanner.nextInt(); // 정수입력
+        }
+        if(count == 0) System.out.println("입력~된수가없습니다.");
+        else {
+            System.out.print("정수의개수는" + count + "개이며");
+            System.out.println("평균은" + (double)sum/count + "입니다.");
+        }
+        scanner.close();
+    }
+}
+
+/* 출력 결과: 
+정수를입력하고마지막에-1을입력하세요.
+>>3 5 1 2 
+-1
+정수의개수는4개이며평균은2.75입니다.
+ */
