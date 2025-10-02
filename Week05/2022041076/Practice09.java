@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice9{
+public class Practice09{
 	public class GarbageEx{
 		public static void main(String[] args) {
 			String a = new String("Good");
@@ -14,4 +14,5 @@ public class Practice9{
 			c = null; // 가비지 발생
 		} // 가비지 발생
 	}
+
 }
