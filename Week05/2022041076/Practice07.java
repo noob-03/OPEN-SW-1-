@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice7{
+public class Practice07{
 	static class Book {
 		String title, author;
 		public Book(String title, String author) {
@@ -26,4 +26,5 @@ public class Practice7{
 			scanner.close();
 		}
 	}
+
 }
