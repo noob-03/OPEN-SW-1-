@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice6{
+public class Practice06{
 	static class Circle {
 		int radius;
 		public Circle(int radius) {
@@ -22,4 +22,5 @@ public class Practice6{
 				System.out.print((int)(c[i].getArea()) + " ");
 		}
 	}
+
 }
