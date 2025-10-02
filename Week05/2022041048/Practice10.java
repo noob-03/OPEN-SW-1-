@@ -7,7 +7,7 @@ class Sample {
 		public static void main(String[] args) {
 			Sample aClass= new Sample();
 			aClass.a= 10;
-			aClass.b= 10;
+			aClass.b= 10;//private 접근X
 			aClass.c= 10;
 		}
 	}
