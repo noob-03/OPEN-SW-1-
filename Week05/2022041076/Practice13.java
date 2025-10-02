@@ -57,8 +57,8 @@ public class Practice13{
 	                System.out.println(players[i].name + "이(가) 졌습니다.");
 	                break;
 	            }
-	            word = newWord; // 정상 진행
-	            i = (i + 1) % n; // 다음 사람 차례
+	            word = newWord; 
+				i = (i + 1) % n;
 	        }
 	    }
 		
@@ -67,4 +67,5 @@ public class Practice13{
 	        game.run();
 	    }
 	}
+
 }
