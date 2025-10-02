@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice4{
+public class Practice04{
 	public static class Book {
 		String title;
 		String author;
@@ -19,4 +19,5 @@ public class Practice4{
 		System.out.println(littlePrince.title+ " " + littlePrince.author);
 		System.out.println(loveStory.title+ " " + loveStory.author);
 	}
+
 }
