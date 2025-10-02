@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice8{
+public class Practice08{
 	
 	public static class ArrayParameterEx{
 		static void replaceSpace(char a[]) {
@@ -25,4 +25,5 @@ public class Practice8{
 			printCharArray(c);
 		}
 	}
+
 }
