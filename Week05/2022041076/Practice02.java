@@ -1,7 +1,7 @@
 package Sample;
 import java.util.Scanner;
 
-public class Practice2{
+public class Practice02{
 	
 	public static class Rectangle{
 		int width;
@@ -20,4 +20,5 @@ public class Practice2{
 		scanner.close();
 	
 	}
+
 }
