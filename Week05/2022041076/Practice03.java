@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice3{
+public class Practice03{
 	
 	public static class Circle{
 		int radius;
@@ -28,4 +28,5 @@ public class Practice3{
 		area = donut.getArea();
 		System.out.println(donut.name+"의 면적은"+area);
 		}
+
 }
