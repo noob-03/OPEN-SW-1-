@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice5{
+public class Practice05{
 	public static class Book {
 		String title;
 		String author;
@@ -27,4 +27,5 @@ public class Practice5{
 		Book emptyBook= new Book();
 		loveStory.show();
 		}
+
 }
