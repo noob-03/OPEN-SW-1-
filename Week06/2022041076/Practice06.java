@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice6{
+public class Practice06{
 	static class Weapon {
 	    protected int fire() {
 	        return 1; //
@@ -23,4 +23,5 @@ public class Practice6{
 	        System.out.println("대포의살상능력은" + weapon.fire());
 	    }
 	}
+
 }
