@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice4{
+public class Practice04{
 	static class Person4 { }
 	static class Student4 extends Person4 { }
 	static class Researcher extends Person4 { }
@@ -25,4 +25,5 @@ public class Practice4{
 	        System.out.print("new Professor() ->\t"); print(new Professor());
 	    }
 	}
+
 }
