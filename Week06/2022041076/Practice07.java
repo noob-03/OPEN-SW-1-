@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice7{
+public class Practice07{
 	static abstract class Calculator {
 	    public abstract int add(int a, int b); 
 	    public abstract int subtract(int a, int b); 
@@ -25,4 +25,5 @@ public class Practice7{
 	        System.out.println(c.average(new int [] { 2,3,4 }));
 	    }
 	}
+
 }
