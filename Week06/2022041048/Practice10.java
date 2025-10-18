@@ -90,9 +90,9 @@ class Game {
             if (humanBet.equals(compBet)) {
                 System.out.println("같습니다!");
                 if (owner == human) {
-                    System.out.println(human.getName() + " 승리!! 🎉");
+                    System.out.println(human.getName() + "승리");
                 } else {
-                    System.out.println("컴퓨터 승리!! 💻");
+                    System.out.println("컴퓨터 승리");
                 }
                 break;
             }
