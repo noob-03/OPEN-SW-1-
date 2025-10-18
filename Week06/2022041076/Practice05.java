@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice5{
+public class Practice05{
 	static class Shape { 
 	    public Shape next;
 	    public Shape() { next = null; }
@@ -38,4 +38,5 @@ public class Practice5{
 	        paint(new Circle());
 	    }
 	}
+
 }
