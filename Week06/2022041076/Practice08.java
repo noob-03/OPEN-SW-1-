@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice8{
+public class Practice08{
 	
 	interface PhoneInterface{ 
 	    final int TIMEOUT = 10000; 
@@ -34,4 +34,5 @@ public class Practice8{
 	        phone.flash();
 	    }
 	}
+
 }
