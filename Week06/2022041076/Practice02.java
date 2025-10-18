@@ -1,7 +1,7 @@
 package Sample;
 import java.util.Scanner;
 
-public class Practice2{
+public class Practice02{
 	
 	static class Person {
 		private int weight;
@@ -30,6 +30,7 @@ public class Practice2{
 				s.set();
 			}
 		}
+
 
 
 }
