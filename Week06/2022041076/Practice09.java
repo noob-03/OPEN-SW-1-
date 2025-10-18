@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice9{
+public class Practice09{
 	static interface PhoneInterface9{ 
 	    final int TIMEOUT = 10000; 
 	    void sendCall(); 
@@ -68,4 +68,5 @@ public class Practice9{
 	        phone.schedule();
 	    }
 	}
+
 }
