@@ -2,7 +2,7 @@ package Sample;
 
 import java.util.Scanner;
 
-public class Practice3{
+public class Practice03{
 	
 	static class Point3 {
 	    private int x, y;
@@ -33,4 +33,5 @@ public class Practice3{
 	        cp.showColorPoint();
 	    }
 	}
+
 }
