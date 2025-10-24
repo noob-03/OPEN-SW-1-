@@ -18,21 +18,30 @@ class Word { // 영어단어와그에해당하는한글뜻을저장하는클래�
 public class WordQuiz{ // 퀴즈의이름과단어목록(Vector)을관리하며, 퀴즈를실행
     private String name;
     private Vector<Word> v;
-    Scanner scanner;
+    Scanner scanner = new Scanner(System.in);
 
-    public WordQuiz(String name) { // 생성자: 프로그램이름을받고, 단어벡터를초기화
+    public WordQuiz(String name) {
         this.name = name;
         v = new Vector<Word>();
-        scanner = new Scanner(System.in);
-        v.add(new Word("love","사랑"));
-        v.add(new Word("animal","동물"));
-        v.add(new Word("emotion","감정"));
-        v.add(new Word("human","인간"));
-        v.add(new Word("stock","주식"));
-        v.add(new Word("computer", "컴퓨터"));
-        v.add(new Word("apple", "사과"));
-        v.add(new Word("java", "자바"));
+        v.add(new Word("love", "사랑"));
+        v.add(new Word("animal", "동물"));
+        v.add(new Word("emotion", "감정"));
+        v.add(new Word("human", "인간"));
+        v.add(new Word("stock", "주식"));
+        v.add(new Word("trade", "거래"));
+        v.add(new Word("society", "사회"));
+        v.add(new Word("baby", "아기"));
+        v.add(new Word("honey", "꿀"));
+        v.add(new Word("dall", "인형"));
+        v.add(new Word("bear", "곰"));
+        v.add(new Word("picture", "사진"));
+        v.add(new Word("painting", "그림"));
+        v.add(new Word("fault", "오류"));
+        v.add(new Word("example", "보기"));
+        v.add(new Word("eye", "눈"));
+        v.add(new Word("statue", "조각상"));
     }
+
     private int makeExample(int ex[], int answerIndex) { // 4개의보기인덱스를생성하고, 그중한위치에정답인덱스를심는메소드
         int correctIndex = (int)(Math.random()*4);
         ex[correctIndex] = answerIndex;
@@ -56,7 +65,7 @@ public class WordQuiz{ // 퀴즈의이름과단어목록(Vector)을관리하며,
     }
     public void run() { // 퀴즈실행메소드. 사용자와상호작용하며문제를출제하고정답을확인.
         System.out.println("\"" + this.name + "\"의 단어 테스트를 시작합니다. -1을 입력하면 종료합니다.");
-        System.out.println("현재" + v.size() + "개의 단어가 들어 있습니다.");
+        System.out.println("현재 " + v.size() + "개의 단어가 들어 있습니다.");
         while(true) {
             int answerIndex = (int) (Math.random() * v.size());
             Word answerWord = v.get(answerIndex);   //정답단어 객체 생성
