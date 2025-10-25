@@ -14,5 +14,12 @@ public class Hello2025{
 			String name = a.get(i);
 			System.out.print(name + " ");
 		}
+		int longestIndex= 0;
+		for(int i=1; i<a.size(); i++) {
+			if(a.get(longestIndex).length() < a.get(i).length())
+				longestIndex= i;
+			}
+		System.out.println("\n가장긴이름은: " + a.get(longestIndex));
+		scanner.close();
 	}
 }
