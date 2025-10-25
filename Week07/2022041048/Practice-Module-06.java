@@ -9,3 +9,5 @@ public class Hello2025{
 		System.out.println("m = " + m);
 	}
 }
+/*intObject= 10
+m = 20*/
