@@ -20,3 +20,15 @@ public class Hello2025{
 		System.out.println(Boolean.parseBoolean("false")); 
 	}
 }
+/*a
+4는숫자
+F는영문자
+-123
+1c
+11100
+3
+3.14
+3.14
+true
+false
+*/
