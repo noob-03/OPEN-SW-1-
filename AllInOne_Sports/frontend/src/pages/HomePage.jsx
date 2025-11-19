@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// .env로 부터 백엔드 URL 받아오기
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
+
 // [백엔드 연동 지점 1] - 가짜 데이터 (Mock Data)
 const MOCK_TOP_MATCHES = [
   { id: 1, title: "Train Hard, Live Better", imageUrl: "https://via.placeholder.com/300x200?text=Match+1" },
@@ -22,6 +25,11 @@ function HomePage() {
     //   .then(data => setTopMatches(data));
   }, []);
 
+  // 소셜 로그인 이벤트
+  const handleSocialLogin = (provider) => {
+      window.location.href = `${BACKEND_API_BASE_URL}/oauth2/authorization/${provider}`
+  };
+
   // 캐러셀은 4개씩 묶어야 하므로, 데이터를 4개 단위로 자르는 함수
   const chunkArray = (array, size) => {
     const chunks = [];
@@ -31,6 +39,7 @@ function HomePage() {
     return chunks;
   };
   const matchChunks = chunkArray(topMatches, 4);
+
 
     // --- 오른쪽 컬럼 스타일 (그라데이션 수정됨) ---
   const rightColumnStyle = {
@@ -92,10 +101,10 @@ function HomePage() {
                   </div>
                   <div className="text-center text-muted small my-3">Or continue with</div>
                   <div className="d-flex gap-3">
-                    <button type="button" className="btn btn-outline-secondary w-100">[G]</button>
-                    <button type="button" className="btn btn-outline-secondary w-100">[N]</button>
                   </div>
                 </form>
+                <button onClick={() => handleSocialLogin("google")} className="btn btn-outline-secondary w-100">[G]</button>
+                <button onClick={() => handleSocialLogin("naver")} className="btn btn-outline-secondary w-100">[N]</button>
               </div>
             </div>
           </div>

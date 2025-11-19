@@ -17,6 +17,7 @@
 | 백엔드총괄 | 김진식 | 2022041019 |
 | 백엔드 | 김태효 | 2022041076 |
 
+## 역할
 ### 프론트엔드 역할 (이준영)
 
 - React + Vite 기반 초기 환경 설정 참여
@@ -72,6 +73,7 @@
 ### 7. 로그인
 - [X] 아이디와 비밀번호를 입력받는다
 - [X] 로그인 검증 -> 실패 시 ERROR메시지 출력 및 재입력
+- [X] 소셜 로그인
 
 ### 8. 입력
 - [X] 아이디(이메일 또는 닉네임)를 입력받는다
@@ -88,6 +90,10 @@
 #### 비밀번호 변경
 - [X] 변경 권한 검증
 - [X] 비밀번호 입력 회원정보에 데이터 넘기기
+
+### 계정관리
+- [X] 일반 유저는 자신에 계정에 대해 CRUD가 가능하다
+- [X] 어드민 계정은 모든 계정에 대해 CRUD/잠금이 가능하다
 
 < 팀 팔로우 >
 ### 팀 정보
@@ -160,6 +166,133 @@
 ### 팀별 티켓 구매 목록 페이지
 - [X] 팀별로 티켓 구매 탭을 구분하여 표시한다.
 - [X] 팀 선택 시, 해당 팀 예약 사이트 목록 페이지로 이동한다.
+
+## User
+| 속성(필드)             | 설명                   |관계 |
+|--------------------|----------------------|--|
+| ID                 | 사용자 ID               | |
+| username           | 닉네임                  | |
+| password           | 비밀번호                 | |
+| isLock             | 계정 잠금 여부             | |
+| isSocial           | 소셜 계정 여부             | |
+| socialProviderType | 소셜 제공자(NAVER,GOOGLE) | |
+| email              | 이메일                  | |
+| roleType           | 권한정보                 | |
+| nickname           | 닉네임                  | |
+| createdDate        | 생성 날짜                | |
+| updatedDate        | 수정 날짜                | |
+| teamILove          | 선호하는 팀               | |
+| sportILove         | 선호하는 종목              | |
+
+## JWT
+| 속성(필드)     | 설명         |관계 |
+|------------|------------|--|
+| ID         | JWT id     | |
+| username   | 사용자        | |
+| refresh    | 리프레쉬 토큰 여부 | |
+| createDate | 생성 날짜      | |
+
+### 스포츠(Sport) 테이블
+
+| 속성(필드) | 설명                      | 관계          |
+|------------|--------------------------|-------------|
+| Sportid    | 스포츠 ID (자동 생성, PK)  | PK          |
+| name       | 스포츠 종류               |             |
+
+### 팀(Team) 테이블
+
+| 속성(필드)    | 설명                       | 관계                    |
+|---------------|----------------------------|-------------------------|
+| Teamid        | 팀 ID (자동 생성, PK)        | PK                      |
+| sport_id      | 스포츠 ID                   | FK (Sport, ManyToOne)   |
+| name          | 팀 이름                      |                         |
+| logo_url      | 팀 로고 URL                  |                         |
+| league        | 소속 리그                     |                         |
+| sns_link      | SNS 하이퍼링크               |                         |
+| ticket_link   | 티켓 사이트 하이퍼링크        |                         |
+
+### 팀 팔로우(Follow) 테이블
+
+| 속성(필드)   | 설명                        | 관계                        |
+|--------------|-----------------------------|-----------------------------|
+| Followid     | 팔로우 ID (자동 생성, PK)     | PK                          |
+| user_id      | 사용자 ID                    | FK (User, ManyToOne)        |
+| team_id      | 팔로우한 팀 ID                | FK (Team, ManyToOne)        |
+
+### 경기(Game) 테이블
+
+| 속성(필드)   | 설명                          | 관계                        |
+|--------------|-------------------------------|-----------------------------|
+| Gameid       | 경기 ID (자동 생성, PK)         | PK                          |
+| home_team_id | 홈 팀 ID                       | FK (Team, ManyToOne)        |
+| away_team_id | 원정 팀 ID                     | FK (Team, ManyToOne)        |
+| date_time    | 경기 일시                      |                             |
+| stadium      | 경기장                         |                             |
+
+### SNS(SNSInfo) 테이블
+
+| 속성(필드)    | 설명                          | 관계                    |
+|---------------|-------------------------------|-------------------------|
+| SNSid         | SNS ID (자동 생성, PK)         | PK                      |
+| team_id       | 팀 ID                          | FK (Team, ManyToOne)    |
+| platform      | SNS 플랫폼명                   |                         |
+| sns_link      | SNS 계정 링크                  |                         |
+
+### 게시글(BoardPost) 테이블
+
+| 속성(필드)    | 설명                              | 관계                          |
+|---------------|-----------------------------------|-------------------------------|
+| BoardPostid   | 게시글 ID (자동 생성, PK)           | PK                            |
+| title         | 게시글 제목                         |                               |
+| content       | 내용 (양도/동행 정보)                |                               |
+| post_type     | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |            |
+| created_at    | 작성 일시                            |                               |
+| user_id       | 작성자 ID                            | FK (User, ManyToOne)          |
+| game_id       | 경기 ID                              | FK (Game, ManyToOne)          |
+| view_count    | 조회수                               |                               |
+| status        | 현재 상태(거래 중/거래 완료)           |                               |
+
+### 댓글(Comment) 테이블
+
+| 속성(필드)   | 설명                      | 관계                       |
+|--------------|---------------------------|----------------------------|
+| Commentid    | 댓글 ID (자동 생성, PK)    | PK                         |
+| content      | 댓글 내용                  |                            |
+| created_at   | 작성 일시                  |                            |
+| user_id      | 작성자 ID                  | FK (User, ManyToOne)       |
+| post_id      | 게시글 ID                  | FK (BoardPost, ManyToOne)  |
+| like_count   | 좋아요 수                  |                            |
+
+### 메시지(Message) 테이블
+
+| 속성(필드)   | 설명                         | 관계                        |
+|--------------|------------------------------|-----------------------------|
+| Messageid    | 메시지 ID (자동 생성, PK)      | PK                          |
+| title        | 메시지 제목                   |                             |
+| content      | 메시지 내용                   |                             |
+| sent_at      | 보낸 날짜                     |                             |
+| is_read      | 읽음 여부                     |                             |
+| sender_id    | 보낸 사람 ID                  | FK (User, ManyToOne, Sender)|
+| receiver_id  | 받는 사람 ID                  | FK (User, ManyToOne, Receiver)|
+
+### 티켓 예약 사이트(TicketSite) 테이블
+
+| 속성(필드)     | 설명                               | 관계                    |
+|----------------|------------------------------------|-------------------------|
+| TicketSiteid   | 사이트 ID (자동 생성, PK)            | PK                      |
+| name           | 사이트 이름 (예: 인터파크, 티켓링크) |                         |
+| description    | 설명                                |                         |
+| site_url       | 사이트 하이퍼링크                   |                         |
+
+### 팀별 티켓 구매(TeamTicketSite) 테이블
+
+| 속성(필드)     | 설명                              | 관계                          |
+|----------------|-----------------------------------|-------------------------------|
+| TeamTicketSiteid | ID (자동 생성, PK)                | PK                            |
+| team_id        | 팀 ID                              | FK (Team, ManyToOne)          |
+| ticket_site_id | 티켓 사이트 ID                      | FK (TicketSite, ManyToOne)    |
+
+
 
 
 ## 사용 기술
