@@ -72,6 +72,7 @@
 ### 7. 로그인
 - [X] 아이디와 비밀번호를 입력받는다
 - [X] 로그인 검증 -> 실패 시 ERROR메시지 출력 및 재입력
+- [X] 소셜 로그인
 
 ### 8. 입력
 - [X] 아이디(이메일 또는 닉네임)를 입력받는다
@@ -160,6 +161,110 @@
 ### 팀별 티켓 구매 목록 페이지
 - [X] 팀별로 티켓 구매 탭을 구분하여 표시한다.
 - [X] 팀 선택 시, 해당 팀 예약 사이트 목록 페이지로 이동한다.
+
+### Entity
++ user
+  + ID
+  + username
+  + password
+  + 계정 잠금 여부
+  + 소셜 계정 여부
+  + 소셜 정보(NAVER or GOOGLE)
+  + 계정 권한 등급
+  + Email
+  + 생성 날짜
+  + 수정 날짜
+  + 좋아하는 팀
++ JWT
+  + ID
+  + username
+  + refresh 토큰 발급 여부
+  + 발급 날짜
+
+## User
+| 속성(필드)    | 설명                   |관계 |
+|-----------|----------------------|--|
+| ID        | 사용자 ID               | |
+| username  | 닉네임                  | |
+| password  | 비밀번호                 | |
+| isLock    | 계정 잠금 여부             | |
+| isSocial  | 소셜 계정 여부             | |
+| socialProviderType | 소셜 제공자(NAVER,GOOGLE) | |
+| email     | 이메일                  | |
+| roleType  | 권한정보                 | |
+| nickname  | 닉네임                  | |
+| createdDate | 생성 날짜                | |
+| updatedDate| 수정 날짜                | |
+
+## JWT
+| 속성(필드)     | 설명         |관계 |
+|------------|------------|--|
+| ID         | JWT id     | |
+| username   | 사용자        | |
+| refresh    | 리프레쉬 토큰 여부 | |
+| createDate | 생성 날짜      | |
+
+## 팀(Team) 테이블
+
+| 속성(필드)   | 설명                           | 관계     |
+|--------------|---------------------------------|---------|
+| Teamid      | 팀 ID (자동 생성, PK)            | PK      |
+| name        | 팀 이름 (예: 'LG 트윈스')       |         |
+| league      | 소속 리그                      |         |
+| sns_link    | 팀 SNS 계정 하이퍼링크 (URL)    |         |
+| ticket_link | 티켓 예매 사이트 하이퍼링크 (URL)|         |
+
+## 팔로우(Follow) 테이블
+
+| 속성(필드) | 설명                         | 관계               |
+|------------|-----------------------------|-------------------|
+| Followid  | 팔로우 ID (자동 생성, PK)    | PK                |
+| user_id   | 팔로우하는 사용자 ID          | FK (User, ManyToOne) |
+| team_id   | 팔로우 대상 팀 ID             | FK (Team, ManyToOne) |
+
+## 경기(Game) 테이블
+
+| 속성(필드)    | 설명                 | 관계                      |
+|---------------|----------------------|--------------------------|
+| Gameid        | 경기 ID (자동 생성, PK) | PK                       |
+| date_time     | 경기 일시             |                          |
+| stadium       | 경기장               |                          |
+| home_team_id  | 홈 팀 ID             | FK (Team, ManyToOne)      |
+| away_team_id  | 원정 팀 ID           | FK (Team, ManyToOne)      |
+
+## 게시글(BoardPost) 테이블
+
+| 속성(필드)   | 설명                         | 관계                       |
+|--------------|------------------------------|----------------------------|
+| BoardPostid  | 게시글 ID (자동 생성, PK)     | PK                         |
+| title        | 게시글 제목                   |                            |
+| content      | 내용 (양도/동행 정보)          |                            |
+| post_type    | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |          |
+| created_at   | 작성 일시                    |                            |
+| user_id      | 작성자 ID                    | FK (User, ManyToOne)        |
+
+## 댓글(Comment) 테이블
+
+| 속성(필드)  | 설명                       | 관계                       |
+|-------------|----------------------------|----------------------------|
+| Commentid   | 댓글 ID (자동 생성, PK)      | PK                         |
+| content     | 댓글 내용                   |                            |
+| created_at  | 작성 일시                   |                            |
+| user_id     | 작성자 ID                  | FK (User, ManyToOne)        |
+| post_id     | 연결된 게시글 ID            | FK (BoardPost, ManyToOne)   |
+
+## 메시지(Message) 테이블
+
+| 속성(필드) | 설명                        | 관계                            |
+|------------|-----------------------------|-------------------------------|
+| Messageid  | 메시지 ID (자동 생성, PK)    | PK                            |
+| content    | 메시지 내용                 |                               |
+| sent_at    | 발신 일시                   |                               |
+| is_read    | 수신 확인 여부              |                               |
+| sender_id  | 발신자 ID                  | FK (User, ManyToOne, Sender)   |
+| receiver_id| 수신자 ID                  | FK (User, ManyToOne, Receiver) |
+
+
 
 
 ## 사용 기술
