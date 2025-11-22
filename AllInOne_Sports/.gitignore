@@ -17,6 +17,7 @@ secret.txt
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+*/backend/src/main/resources/application.properties
 
 ### IntelliJ IDEA ###
 .idea
