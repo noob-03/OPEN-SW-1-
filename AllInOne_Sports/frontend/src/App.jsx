@@ -23,7 +23,6 @@ function App() {
         <Route path="/join" element={<JoinPage />} />
         <Route path="/cookie" element={<CookiePage />} />
         <Route path="/board" element={<ListBoard />} />
-        <Route path="/create-board" element={<CreateBoard />} />
       </Routes>
 
       {/* 3. Footer는 라우터 내부에 위치합니다. */}
