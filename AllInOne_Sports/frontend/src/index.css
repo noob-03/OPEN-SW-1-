@@ -1,93 +1,12 @@
-/* Google Fonts에서 Poppins 폰트 불러오기 */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* --- 1. 페이지 전체 배경색 및 기본 폰트 --- */
 body {
-  background-color: #FFFFFF;
-  font-family: 'Poppins', sans-serif;
   margin: 0;
-  overflow-x: hidden;
-}
-
-/* --- 2. Header.jsx 스타일 (투명 네비게이션) --- */
-.transparent-navbar {
-  background-color: transparent !important;
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  box-shadow: none !important;
-}
-
-.logo-font {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 900 !important;
-  font-size: 35px !important;
-  color: #6C80FF !important;
-}
-
-.menu-font {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400 !important;
-  font-size: 20px !important;
-  color: #000000 !important;
-  margin-left: 40px;
-  margin-right: 145px;
-}
-
-.menu-font:hover {
-  color: #6C80FF !important;
-}
-
-/* --- 3. HomePage.jsx 스타일 --- */
-.hero-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 78px;
-  color: #6C80FF;
-  line-height: 1.2;
-}
-
-.hero-subtitle {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-  font-size: 20px;
-  color: rgba(0, 0, 0, 0.75);
-  line-height: 1.54;
-  margin-top: 20px;
-}
-
-.logo-overlay-text {
-  position: absolute;
-  bottom: 50px;
-  left: -180px;
-  transform-origin: 0 0;
-  transform: rotate(-90deg);
-  font-family: 'Poppins', sans-serif;
-  font-weight: 900;
-  font-size: 160px;
-  color: rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* --- [NEW] 캐러셀 화살표 위치 및 스타일 수정 --- */
-#topMatchesCarousel .carousel-control-prev {
-  width: 5%;
-  left: -6%;  /* 왼쪽 바깥으로 이동 */
-}
-
-#topMatchesCarousel .carousel-control-next {
-  width: 5%;
-  right: -6%; /* 오른쪽 바깥으로 이동 */
-}
-
-/* 화살표 아이콘 색상 변경 (검은색) */
-#topMatchesCarousel .carousel-control-prev-icon,
-#topMatchesCarousel .carousel-control-next-icon {
-  filter: invert(1) grayscale(100);
-  width: 3rem;
-  height: 3rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
