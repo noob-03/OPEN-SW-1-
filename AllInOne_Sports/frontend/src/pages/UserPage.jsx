@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAccess } from "../util/fetchUtil";
 import { LogOut, User, MessageSquare, Bell, Users, HelpCircle, ArrowLeft, Loader2 } from 'lucide-react'; 
 
-// .env로 부터 백엔드 URL 받아오기 (실제 환경에 맞게 조정하세요)
-// ⚠️ 주의: 실제 프로젝트에서는 이 변수를 환경 변수로 관리해야 합니다.
-const BACKEND_API_BASE_URL = 'http://localhost:8080'; 
+// .env로 부터 백엔드 URL 받아오기
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 /**
  * MyPage 컴포넌트
@@ -32,36 +32,22 @@ function MyPage() {
             setError('');
 
             try {
-                // 💡 fetchWithAccess 대신 표준 fetch와 토큰 수동 추가를 사용합니다.
-                // 실제 환경에서는 fetchWithAccess를 사용하여 토큰 갱신 로직을 활용하는 것이 좋습니다.
-                const res = await fetch(`${BACKEND_API_BASE_URL}/user`, {
+                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
-                        // 토큰을 Authorization 헤더에 Bearer 타입으로 포함
-                        'Authorization': `Bearer ${accessToken}`, 
                     },
                 });
-
-                if (res.status === 401) { // 토큰 만료 등 인증 오류
-                    localStorage.removeItem("accessToken");
-                    localStorage.removeItem("refreshToken");
-                    navigate('/', { state: { message: '세션이 만료되었습니다.' } });
-                    return;
-                }
 
                 if (!res.ok) {
                     throw new Error("유저 정보 불러오기 실패");
                 }
 
                 const data = await res.json();
-                
-                // API 응답 데이터 (username, nickname, email)를 상태에 저장
-                setUserInfo(data); 
+                setUserInfo(data);
 
             } catch (err) {
-                console.error("User Info Fetch Error:", err);
                 setError("유저 정보를 불러오지 못했습니다.");
             } finally {
                 setIsLoading(false);
@@ -70,7 +56,7 @@ function MyPage() {
 
         fetchUserInfo();
 
-    }, [navigate]);
+    }, []);
     
     // 로그아웃 이벤트
     const handleLogout = () => {
