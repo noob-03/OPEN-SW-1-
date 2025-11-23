@@ -210,6 +210,9 @@
 | league        | 소속 리그                     |                         |
 | sns_link      | SNS 하이퍼링크               |                         |
 | ticket_link   | 티켓 사이트 하이퍼링크        |                         |
+| team_link      | 팀 오피셜 사이트 하이퍼링크               |                         |
+| player_id      | 선수 ID               |                         |
+
 
 ### 팀 팔로우(Follow) 테이블
 
@@ -218,6 +221,17 @@
 | Followid     | 팔로우 ID (자동 생성, PK)     | PK                          |
 | user_id      | 사용자 ID                    | FK (User, ManyToOne)        |
 | team_id      | 팔로우한 팀 ID                | FK (Team, ManyToOne)        |
+
+### 선수(Player) 테이블
+
+| 속성(필드) | 설명                      | 관계          |
+|------------|--------------------------|-------------|
+| player_id    | 선수 ID (자동 생성, PK)  | PK          |
+| player_name       | 선수 이름               |             |
+| player_url       | 선수 사진 URL              |             |
+| player_number       | 선수 등번호               |             |
+
+
 
 ### 경기(Game) 테이블
 
@@ -240,17 +254,20 @@
 
 ### 게시글(BoardPost) 테이블
 
-| 속성(필드)    | 설명                              | 관계                          |
-|---------------|-----------------------------------|-------------------------------|
-| BoardPostid   | 게시글 ID (자동 생성, PK)           | PK                            |
-| title         | 게시글 제목                         |                               |
-| content       | 내용 (양도/동행 정보)                |                               |
-| post_type     | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |            |
-| created_at    | 작성 일시                            |                               |
-| user_id       | 작성자 ID                            | FK (User, ManyToOne)          |
-| game_id       | 경기 ID                              | FK (Game, ManyToOne)          |
-| view_count    | 조회수                               |                               |
-| status        | 현재 상태(거래 중/거래 완료)           |                               |
+| 속성(필드)      | 설명                                         | 관계                          |
+|-------------|--------------------------------------------|-------------------------------|
+| BoardPostid | 게시글 ID (자동 생성, PK)                         | PK                            |
+| title       | 게시글 제목                                     |                               |
+| content     | 내용 (양도/동행 정보)                              |                               |
+| post_type   | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |            |
+| created_at  | 작성 일시                                      |                               |
+| user_id     | 작성자 ID                                     | FK (User, ManyToOne)          |
+| sports_type | 스포츠 종목(야구 KBO,축구 K리그)                      |           |
+| price       | 티켓 가격                                      |           |
+| game_date   | 경기 날짜                                      |           |
+| seat        | 좌석 번호                                      |           |
+| view_count  | 조회수                                        |                               |
+| status      | 현재 상태(거래 중/거래 완료)                          |                               |
 
 ### 댓글(Comment) 테이블
 
@@ -261,7 +278,8 @@
 | created_at   | 작성 일시                  |                            |
 | user_id      | 작성자 ID                  | FK (User, ManyToOne)       |
 | post_id      | 게시글 ID                  | FK (BoardPost, ManyToOne)  |
-| like_count   | 좋아요 수                  |                            |
+| like_count_comment   | 댓글 좋아요 수                  |                            |
+| report_count_comment        | 댓글 신고 수           |                               |
 
 ### 메시지(Message) 테이블
 
@@ -275,23 +293,6 @@
 | sender_id    | 보낸 사람 ID                  | FK (User, ManyToOne, Sender)|
 | receiver_id  | 받는 사람 ID                  | FK (User, ManyToOne, Receiver)|
 
-### 티켓 예약 사이트(TicketSite) 테이블
-
-| 속성(필드)     | 설명                               | 관계                    |
-|----------------|------------------------------------|-------------------------|
-| TicketSiteid   | 사이트 ID (자동 생성, PK)            | PK                      |
-| name           | 사이트 이름 (예: 인터파크, 티켓링크) |                         |
-| description    | 설명                                |                         |
-| site_url       | 사이트 하이퍼링크                   |                         |
-
-### 팀별 티켓 구매(TeamTicketSite) 테이블
-
-| 속성(필드)     | 설명                              | 관계                          |
-|----------------|-----------------------------------|-------------------------------|
-| TeamTicketSiteid | ID (자동 생성, PK)                | PK                            |
-| team_id        | 팀 ID                              | FK (Team, ManyToOne)          |
-| ticket_site_id | 티켓 사이트 ID                      | FK (TicketSite, ManyToOne)    |
-
 
 
 
@@ -303,3 +304,4 @@
 + Gradle 7.x 이상
 + Mysql
 + 모던 JS 환경 – react
++ 가능하다면 AI 학습 비속어 필터
