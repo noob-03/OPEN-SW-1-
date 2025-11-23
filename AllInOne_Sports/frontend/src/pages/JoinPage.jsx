@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // .env로 부터 백엔드 URL 받아오기 (HomePage에서 사용하셨던 환경 변수 정의)
 // ⚠️ 실제 프로젝트에서는 이 변수를 사용하는 컴포넌트에서만 정의하거나, 
 //    Global Config 파일에서 가져와야 합니다.
-const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL || 'http://localhost:8080';
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 function JoinPage() {
 

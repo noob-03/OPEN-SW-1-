@@ -254,19 +254,20 @@
 
 ### 게시글(BoardPost) 테이블
 
-| 속성(필드)    | 설명                              | 관계                          |
-|---------------|-----------------------------------|-------------------------------|
-| BoardPostid   | 게시글 ID (자동 생성, PK)           | PK                            |
-| title         | 게시글 제목                         |                               |
-| content       | 내용 (양도/동행 정보)                |                               |
-| post_type     | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |            |
-| created_at    | 작성 일시                            |                               |
-| user_id       | 작성자 ID                            | FK (User, ManyToOne)          |
-| game_id       | 경기 ID                              | FK (Game, ManyToOne)          |
-| view_count    | 조회수                               |                               |
-| status        | 현재 상태(거래 중/거래 완료)           |                               |
-| like_count_post        | 게시글 좋아요 수           |                               |
-| report_count_post        | 게시글 신고 수           |                               |
+| 속성(필드)      | 설명                                         | 관계                          |
+|-------------|--------------------------------------------|-------------------------------|
+| BoardPostid | 게시글 ID (자동 생성, PK)                         | PK                            |
+| title       | 게시글 제목                                     |                               |
+| content     | 내용 (양도/동행 정보)                              |                               |
+| post_type   | 게시글 종류 (예: 'TICKET_TRANSFER', 'COMPANION') |            |
+| created_at  | 작성 일시                                      |                               |
+| user_id     | 작성자 ID                                     | FK (User, ManyToOne)          |
+| sports_type | 스포츠 종목(야구 KBO,축구 K리그)                      |           |
+| price       | 티켓 가격                                      |           |
+| game_date   | 경기 날짜                                      |           |
+| seat        | 좌석 번호                                      |           |
+| view_count  | 조회수                                        |                               |
+| status      | 현재 상태(거래 중/거래 완료)                          |                               |
 
 ### 댓글(Comment) 테이블
 

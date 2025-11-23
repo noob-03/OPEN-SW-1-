@@ -152,13 +152,13 @@ public class UserService extends DefaultOAuth2UserService implements UserDetails
             // 🛑 NullPointerException 방지를 위한 안전한 파싱
             String receivedId = (String) attributes.get("id"); // ID는 필수 정보이므로 Null 아닐 확률 높음
             String receivedEmail = (String) attributes.get("email"); // 👈 153번째 줄 근처일 가능성 높음
-            String receivedNickname = (String) attributes.get("nickname"); // 👈 153번째 줄 근처일 가능성 높음
+            String receivedName = (String) attributes.get("name"); // 👈 153번째 줄 근처일 가능성 높음
 
             username = registrationId + "_" + receivedId;
 
             // receivedEmail 또는 receivedNickname이 null일 경우 대체 값 할당
             email = (receivedEmail != null) ? receivedEmail : username + "@social.com";
-            nickname = (receivedNickname != null) ? receivedNickname : email;
+            nickname = (receivedName != null) ? receivedName : email;
 
         } else if (registrationId.equals(SocialProviderType.GOOGLE.name())) {
 
