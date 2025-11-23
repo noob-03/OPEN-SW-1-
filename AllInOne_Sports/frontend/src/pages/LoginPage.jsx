@@ -61,14 +61,14 @@ function HomePage() {
 
           if (!res.ok) {
               // 응답이 200-299가 아니면 실패 처리
-              throw new Error("로그인 실패"); 
+              throw new Error("로그인 실패");
           }
 
           const data = await res.json();
           // 토큰 저장 (로그인 유지)
           localStorage.setItem("accessToken", data.accessToken);
           localStorage.setItem("refreshToken", data.refreshToken);
-          
+
           // 로그인 성공 후 메인/대시보드 페이지로 이동
           navigate("/user");
       } catch (err) {
@@ -151,24 +151,24 @@ function HomePage() {
                 {/* 💡 2. 로그인 폼 (handleLogin 연결) */}
                 <form onSubmit={handleLogin}>
                   <div className="mb-3">
-                    <input 
-                      type="text" 
-                      name="username" 
-                      className="form-control form-control-lg" 
-                      placeholder="Enter ID" 
-                      style={{backgroundColor: '#F0F4F8', border: 'none'}} 
+                    <input
+                      type="text"
+                      name="username"
+                      className="form-control form-control-lg"
+                      placeholder="Enter ID"
+                      style={{backgroundColor: '#F0F4F8', border: 'none'}}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required
                       />
                   </div>
                   <div className="mb-3">
-                    <input 
+                    <input
                       type="password"
                       name="password"
                       className="form-control form-control-lg"
-                      placeholder="Password" 
-                      style={{backgroundColor: '#F0F4F8', border: 'none'}} 
+                      placeholder="Password"
+                      style={{backgroundColor: '#F0F4F8', border: 'none'}}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -180,9 +180,9 @@ function HomePage() {
                 </form>
 
                 {/* 💡 3. Sign Up 버튼 (폼 외부에 배치) */}
-                <div className="d-grid mb-4"> 
-                  <button 
-                    type="button" 
+                <div className="d-grid mb-4">
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary btn-lg fw-semibold" // 아웃라인 스타일로 변경
                     onClick={handleSignUp}
                     >
@@ -191,22 +191,22 @@ function HomePage() {
                 </div>
 
                 <div className="text-center text-muted small my-3">Or continue with</div>
-                
+
                 {/* 💡 4. 소셜 로그인 버튼 정리 (d-grid gap-2 사용) */}
                 <div className="d-grid gap-2">
                   <button onClick={() => handleSocialLogin("google")} className="btn btn-outline-secondary w-100">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" 
-                      alt="Google Logo" 
-                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }} 
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png"
+                      alt="Google Logo"
+                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }}
                     />
                     Sign in with Google
                   </button>
                   <button onClick={() => handleSocialLogin("naver")} className="btn btn-outline-secondary w-100">
-                    <img 
-                      src="https://i.namu.wiki/i/p_1IEyQ8rYenO9YgAFp_LHIAW46kn6DXT0VKmZ_jKNijvYth9DieYZuJX_E_H_4GkCER_sVKhMqSyQYoW94JKA.svg" 
-                      alt="Naver Logo" 
-                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }} 
+                    <img
+                      src="https://i.namu.wiki/i/p_1IEyQ8rYenO9YgAFp_LHIAW46kn6DXT0VKmZ_jKNijvYth9DieYZuJX_E_H_4GkCER_sVKhMqSyQYoW94JKA.svg"
+                      alt="Naver Logo"
+                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }}
                     />
                     Sign in with Naver
                   </button>
