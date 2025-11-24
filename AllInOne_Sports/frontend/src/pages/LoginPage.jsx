@@ -1,259 +1,318 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 
-// .env로 부터 백엔드 URL 받아오기
-const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
-
-// [백엔드 연동 지점 1] - 가짜 데이터 (Mock Data)
 const MOCK_TOP_MATCHES = [
-  { id: 1, title: "Train Hard, Live Better", imageUrl: "https://via.placeholder.com/300x200?text=Match+1" },
-  { id: 2, title: "Money Transfers", imageUrl: "https://via.placeholder.com/300x200?text=Match+2" },
-  { id: 3, title: "Financial Clarity", imageUrl: "https://via.placeholder.com/300x200?text=Match+3" },
-  { id: 4, title: "Jones & Brown Legal", imageUrl: "https://via.placeholder.com/300x200?text=Match+4" },
-  { id: 5, title: "Match 5 (Next Slide)", imageUrl: "https://via.placeholder.com/300x200?text=Match+5" },
-  { id: 6, title: "Match 6 (Next Slide)", imageUrl: "https://via.placeholder.com/300x200?text=Match+6" },
-  { id: 7, title: "Match 7 (Next Slide)", imageUrl: "https://via.placeholder.com/300x200?text=Match+7" },
-  { id: 8, title: "Match 8 (Next Slide)", imageUrl: "https://via.placeholder.com/300x200?text=Match+8" },
+  { id: 1, title: "아스날 vs 토트넘", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
+  { id: 2, title: "맨시티 vs 리버풀", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
+  { id: 3, title: "바르셀로나 vs 레알", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
+  { id: 4, title: "뮌헨 vs 도르트문트", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
+  { id: 5, title: "PSG vs 마르세유", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
+  { id: 6, title: "AC밀란 vs 인터밀란", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
+  { id: 7, title: "첼시 vs 맨유", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
+  { id: 8, title: "유벤투스 vs 나폴리", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
 ];
 
-function HomePage() {
-  const [topMatches, setTopMatches] = useState([]);
+const LoginPage = ({ sportMode }) => {
   const navigate = useNavigate();
 
-  // 로그인 상태 관리
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    setTopMatches(MOCK_TOP_MATCHES);
-    // fetch('/api/matches/top')
-    //   .then(res => res.json())
-    //   .then(data => setTopMatches(data));
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const chunkSize = 4;
+
+  const chunks = useMemo(() => {
+    const tempChunks = [];
+    for (let i = 0; i < MOCK_TOP_MATCHES.length; i += chunkSize) {
+      tempChunks.push(MOCK_TOP_MATCHES.slice(i, i + chunkSize));
+    }
+    return tempChunks;
   }, []);
 
-  // 소셜 로그인 이벤트
-  const handleSocialLogin = (provider) => {
-      window.location.href = `${BACKEND_API_BASE_URL}/oauth2/authorization/${provider}`
-      navigate("/user");
-  };
+  const nextSlide = () =>
+    setCurrentSlide((prev) => (prev + 1) % chunks.length);
 
-  // 자체 로그인 이벤트 (사용자가 제공한 로직 반영)
+  const prevSlide = () =>
+    setCurrentSlide((prev) => (prev - 1 + chunks.length) % chunks.length);
+
+  const BACKEND_API_BASE_URL = 'http://localhost:8080';
+
+  // ✔ 로그인 핸들러 수정
   const handleLogin = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
 
-      e.preventDefault();
-      setError("");
+    if (username === "" || password === "") {
+      setErrorMessage("아이디와 비밀번호를 입력하세요.");
+      return;
+    }
 
-      if (username === "" || password === "") {
-          setError("아이디와 비밀번호를 입력하세요.");
-          return;
+    try {
+      const response = await fetch(`${BACKEND_API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("로그인 실패: 아이디 또는 비밀번호를 확인하세요.");
       }
 
-      // API 요청
-      try {
-          // Spring Boot의 /login 엔드포인트로 POST 요청
-          const res = await fetch(`${BACKEND_API_BASE_URL}/login`, {
-              method: "POST",
-              headers: {"Content-Type": "application/json",},
-              credentials: "include",
-              body: JSON.stringify({ username, password }),
-          });
+      const data = await response.json();
 
-          if (!res.ok) {
-              // 응답이 200-299가 아니면 실패 처리
-              throw new Error("로그인 실패"); 
-          }
-
-          const data = await res.json();
-          // 토큰 저장 (로그인 유지)
-          localStorage.setItem("accessToken", data.accessToken);
-          localStorage.setItem("refreshToken", data.refreshToken);
-          
-          // 로그인 성공 후 메인/대시보드 페이지로 이동
-          navigate("/user");
-      } catch (err) {
-          console.error("Login Error:", err);
-          setError("아이디 또는 비밀번호가 틀렸습니다.");
+      if (!data.accessToken) {
+        throw new Error("토큰을 받아오지 못했습니다.");
       }
+
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+
+      window.dispatchEvent(new Event("login-status-change"));
+      navigate('/main');
+
+    } catch (error) {
+      console.error("Login Error:", error);
+      setErrorMessage(error.message);
+    }
   };
 
-  // 회원가입 이벤트: /join 경로로 이동
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${BACKEND_API_BASE_URL}/oauth2/authorization/${provider}`;
+  };
+
   const handleSignUp = () => {
     navigate('/join');
   };
 
-  // 캐러셀은 4개씩 묶어야 하므로, 데이터를 4개 단위로 자르는 함수
-  const chunkArray = (array, size) => {
-    const chunks = [];
-    for (let i = 0; i < array.length; i += size) {
-      chunks.push(array.slice(i, i + size));
-    }
-    return chunks;
+  const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
+
+  const CARD_HEIGHT = 220;
+  const TITLE_AREA_HEIGHT = 150;
+  const arrowTopStyle = `calc(${TITLE_AREA_HEIGHT + CARD_HEIGHT / 2 + 15}px)`;
+
+  useEffect(() => {
+    const interval = setInterval(nextSlide, 5000);
+    return () => clearInterval(interval);
+  }, [chunks.length]);
+
+  const token = localStorage.getItem("accessToken");
+
+  const backgroundObjectStyle = {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    height: '100%',
+    width: token ? '100%' : '50%',
+    zIndex: 0,
+    transition:
+      'width 1.2s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.5s ease-in-out',
+    background:
+      sportMode === 'soccer'
+        ? 'linear-gradient(155deg, #E0EBFF 0%, #BCD9FF 100%)'
+        : 'linear-gradient(155deg, #FFE5E5 0%, #FFC2C2 100%)',
   };
-  const matchChunks = chunkArray(topMatches, 4);
 
-
-    // --- 오른쪽 컬럼 스타일 (그라데이션 수정됨) ---
-  const rightColumnStyle = {
-    // Figma 정보 반영: 흰색(#FFFFFF) -> 연한 파랑(#BCD9FF)
-    // 방향: to right (왼쪽에서 오른쪽으로)
-    backgroundImage: 'linear-gradient(to left, #FFFFFF 0%, #BCD9FF 100%)',
-
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    paddingTop: '300px',
-    minHeight: '100vh'
-  };
-
-  // --- 왼쪽 컬럼 스타일 (흰색) ---
-  const leftColumnStyle = {
-    backgroundColor: '#FFFFFF',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    paddingLeft: '5rem',
-    paddingTop: '350px',
-    minHeight: '100vh'
+  const heroColumnStyle = {
+    paddingTop: '3rem',
+    paddingBottom: '100px',
+    position: 'relative',
+    zIndex: 1,
   };
 
   return (
-    <>
-      {/* --- 1. 메인 히어로 & 로그인 섹션 (Split Screen) --- */}
-      <section className="container-fluid p-0 overflow-hidden">
-        <div className="row g-0">
+    <div className="container-fluid p-0" style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#FFFFFF' }}>
 
-          {/* 왼쪽: 텍스트 영역 */}
-          <div className="col-lg-6" style={leftColumnStyle}>
-            <div>
-              <h1 className="hero-title">All Your Sports,<br/>All In One Place</h1>
-              <p className="lead hero-subtitle">
-                Check Schedules, Book Tickets,<br/>
-                And Join The Fan Community<br/>
-                For KBO And K-League
-              </p>
+      {/* HERO SECTION */}
+      <div style={{ position: 'relative', minHeight: '85vh', overflow: 'hidden' }}>
+        <div style={backgroundObjectStyle} />
+
+        <div className="row g-0" style={{ height: '100%', paddingTop: '80px' }}>
+
+          {/* LEFT TEXT */}
+          <div className="col-lg-6 d-flex flex-column justify-content-center px-5" style={heroColumnStyle}>
+            <div className="ps-lg-5 ms-lg-5">
+              <h1 className="display-3 fw-bold mb-4"
+                style={{ color: themeColor, lineHeight: '1.2' }}>
+                All Your Sports,<br />All In One Place
+              </h1>
+              <p className="text-muted fs-5 mb-0">Check Schedules, Book Tickets,</p>
+              <p className="text-muted fs-5">And Join The Fan Community</p>
             </div>
           </div>
 
-          {/* 오른쪽: 로그인 폼 영역 (그라데이션 배경) */}
-          <div className="col-lg-6" style={rightColumnStyle}>
-            <div className="card shadow-lg border-0 rounded-4" style={{ width: '80%', maxWidth: '450px' }}>
-              <div className="card-body p-4 p-md-5">
-                <h3 className="text-center mb-4 fw-bold">Sign In</h3>
+          {/* RIGHT LOGIN CARD */}
+          <div className="col-lg-6 d-flex justify-content-center align-items-center" style={heroColumnStyle}>
 
-                {/* 💡 1. 오류 메시지 표시 */}
-                {error && (
-                    <div className="alert alert-danger small py-2" role="alert">
-                        {error}
-                    </div>
-                )}
+            {/* ✔ 폼 적용 */}
+            <form
+              onSubmit={handleLogin}
+              className="card p-5 shadow-lg border-0 text-center"
+              style={{
+                maxWidth: '400px',
+                width: '90%',
+                borderRadius: '1.5rem',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+              }}
+            >
+              <h2 className="mb-4 fw-bold text-dark">Sign In</h2>
 
-                {/* 💡 2. 로그인 폼 (handleLogin 연결) */}
-                <form onSubmit={handleLogin}>
-                  <div className="mb-3">
-                    <input 
-                      type="text" 
-                      name="username" 
-                      className="form-control form-control-lg" 
-                      placeholder="Enter ID" 
-                      style={{backgroundColor: '#F0F4F8', border: 'none'}} 
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      required
-                      />
-                  </div>
-                  <div className="mb-3">
-                    <input 
-                      type="password"
-                      name="password"
-                      className="form-control form-control-lg"
-                      placeholder="Password" 
-                      style={{backgroundColor: '#F0F4F8', border: 'none'}} 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="d-grid mb-4">
-                    <button type="submit" className="btn btn-primary btn-lg fw-semibold" style={{backgroundColor: '#6C80FF', borderColor: '#6C80FF'}}>Sign In</button>
-                  </div>
-                </form>
+              {/* 입력 */}
+              <div className="mb-3 text-start">
+                <input
+                  type="text"
+                  className="form-control mb-3 p-3 bg-light border-0"
+                  placeholder="Enter ID"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
 
-                {/* 💡 3. Sign Up 버튼 (폼 외부에 배치) */}
-                <div className="d-grid mb-4"> 
-                  <button 
-                    type="button" 
-                    className="btn btn-outline-secondary btn-lg fw-semibold" // 아웃라인 스타일로 변경
-                    onClick={handleSignUp}
-                    >
-                    Sign Up
-                  </button>
-                </div>
-
-                <div className="text-center text-muted small my-3">Or continue with</div>
-                
-                {/* 💡 4. 소셜 로그인 버튼 정리 (d-grid gap-2 사용) */}
-                <div className="d-grid gap-2">
-                  <button onClick={() => handleSocialLogin("google")} className="btn btn-outline-secondary w-100">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" 
-                      alt="Google Logo" 
-                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }} 
-                    />
-                    Sign in with Google
-                  </button>
-                  <button onClick={() => handleSocialLogin("naver")} className="btn btn-outline-secondary w-100">
-                    <img 
-                      src="https://i.namu.wiki/i/p_1IEyQ8rYenO9YgAFp_LHIAW46kn6DXT0VKmZ_jKNijvYth9DieYZuJX_E_H_4GkCER_sVKhMqSyQYoW94JKA.svg" 
-                      alt="Naver Logo" 
-                      style={{ height: '1.2em', marginRight: '0.5em', verticalAlign: 'middle' }} 
-                    />
-                    Sign in with Naver
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  className="form-control p-3 bg-light border-0"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
-            </div>
+
+              {/* 에러 메시지 */}
+              {errorMessage && (
+                <p className="text-danger small mb-2">{errorMessage}</p>
+              )}
+
+              {/* 로그인 */}
+              <button
+                type="submit"
+                className="btn w-100 py-3 fw-bold mb-3"
+                style={{
+                  backgroundColor: themeColor,
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  color: '#fff',
+                  boxShadow: `0 4px 15px ${
+                    sportMode === 'soccer'
+                      ? 'rgba(92, 103, 242, 0.4)'
+                      : 'rgba(224, 49, 49, 0.4)'
+                  }`,
+                }}
+              >
+                Sign In
+              </button>
+
+              {/* 회원가입 */}
+              <button
+                type="button"
+                onClick={handleSignUp}
+                className="btn btn-outline-dark w-100 py-3 fw-bold mb-4"
+                style={{ borderRadius: '0.5rem' }}
+              >
+                Sign Up
+              </button>
+
+              <p className="text-muted small mb-2">Or continue with</p>
+
+              {/* 소셜 로그인 */}
+              <div className="d-flex flex-column gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSocialLogin('google')}
+                  className="btn btn-outline-secondary w-100 py-2 small d-flex align-items-center justify-content-center"
+                  style={{ borderRadius: '0.5rem' }}
+                >
+                  Google Login
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSocialLogin('naver')}
+                  className="btn w-100 py-2 small d-flex align-items-center justify-content-center"
+                  style={{
+                    borderRadius: '0.5rem',
+                    borderColor: '#03C75A',
+                    color: '#03C75A',
+                  }}
+                >
+                  Naver Login
+                </button>
+              </div>
+            </form>
+
           </div>
-
         </div>
-      </section>
+      </div>
 
-      {/* --- 2. TOP 매치 캐러셀 섹션 --- */}
-      <section className="container mb-5 mt-5">
-        <h2 className="mb-2 fw-bold">This Week's Top Matches</h2>
-        <p className="text-muted mb-4">Check Out The Hottest Games</p>
+      {/* 캐러셀 섹션 */}
+      <section className="container px-5 position-relative"
+        style={{ paddingTop: '60px', paddingBottom: '150px', backgroundColor: '#FFF' }}>
 
-        <div id="topMatchesCarousel" className="carousel slide" data-bs-ride="carousel">
-          <div className="carousel-inner">
-            {matchChunks.map((chunk, index) => (
-              <div className={`carousel-item ${index === 0 ? 'active' : ''}`} key={index}>
-                <div className="row g-4">
-                  {chunk.map(match => (
-                    <div className="col-md-3" key={match.id}>
-                      <div className="card h-100 shadow-sm border-0">
-                        <img src={match.imageUrl} className="card-img-top" alt={match.title} />
-                        <div className="card-body">
-                          <h5 className="card-title">{match.title}</h5>
-                          <a href={`/matches/${match.id}`} className="btn btn-sm btn-outline-primary">View Details</a>
-                        </div>
-                      </div>
+        <div className="mb-5">
+          <div style={{ width: '50px', height: '3px', backgroundColor: '#000', marginBottom: '1rem' }} />
+          <h2 className="fw-bold mb-2 text-dark" style={{ fontSize: '2.2rem' }}>
+            This Week's Top Matches
+          </h2>
+        </div>
+
+        <button onClick={prevSlide}
+          className="btn btn-link p-0 position-absolute d-none d-md-block"
+          style={{ left: '-50px', top: arrowTopStyle }}>
+          <ChevronLeft size={40} strokeWidth={1.5} />
+        </button>
+
+        <button onClick={nextSlide}
+          className="btn btn-link p-0 position-absolute d-none d-md-block"
+          style={{ right: '-50px', top: arrowTopStyle }}>
+          <ChevronRight size={40} strokeWidth={1.5} />
+        </button>
+
+        <div style={{ overflow: 'hidden' }}>
+          <div
+            className="row g-5 flex-nowrap"
+            style={{
+              width: `${chunks.length * 100}%`,
+              transform: `translateX(-${currentSlide * (100 / chunks.length)}%)`,
+              transition: 'transform 0.5s ease-in-out',
+            }}
+          >
+            {MOCK_TOP_MATCHES.map((match) => (
+              <div
+                key={match.id}
+                className="col-12 col-md-6 col-lg-3"
+                style={{
+                  flex: `0 0 ${100 / (chunks[0].length * chunks.length)}%`,
+                }}
+              >
+                <div className="card h-100 border-0" style={{ backgroundColor: 'transparent' }}>
+                  <div
+                    className="position-relative rounded-4 overflow-hidden mb-3"
+                    style={{ height: `${CARD_HEIGHT}px`, backgroundColor: '#f8f9fa' }}
+                  >
+                    <img
+                      src={match.imageUrl}
+                      className="w-100 h-100 object-fit-cover"
+                      alt={match.title}
+                      style={{ opacity: 0.8 }}
+                    />
+
+                    <div
+                      className="position-absolute bottom-0 end-0 m-3 bg-black rounded-circle d-flex align-items-center justify-content-center"
+                      style={{ width: '32px', height: '32px', cursor: 'pointer' }}
+                    >
+                      <ArrowUpRight size={18} color="white" />
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-
-          <button className="carousel-control-prev" type="button" data-bs-target="#topMatchesCarousel" data-bs-slide="prev">
-            <span className="carousel-control-prev-icon" aria-hidden="true" style={{filter: 'invert(1)'}}></span>
-          </button>
-          <button className="carousel-control-next" type="button" data-bs-target="#topMatchesCarousel" data-bs-slide="next">
-            <span className="carousel-control-next-icon" aria-hidden="true" style={{filter: 'invert(1)'}}></span>
-          </button>
         </div>
       </section>
-    </>
-  );
-}
 
-export default HomePage;
+    </div>
+  );
+};
+
+export default LoginPage;

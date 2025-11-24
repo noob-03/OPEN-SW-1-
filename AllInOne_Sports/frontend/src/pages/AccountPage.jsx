@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Loader2, ArrowLeft, Settings, Save, CheckCircle } from 'lucide-react'; // Settings 아이콘 추가
 
 // .env로 부터 백엔드 URL 받아오기
-const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 /**
  * AccountPage 컴포넌트
