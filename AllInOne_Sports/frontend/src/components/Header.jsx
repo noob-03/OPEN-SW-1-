@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-// props로 sportMode, setSportMode 받기
 function Header({ sportMode, setSportMode }) {
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
 
@@ -9,13 +8,14 @@ function Header({ sportMode, setSportMode }) {
     setSportMode(prev => prev === 'soccer' ? 'baseball' : 'soccer');
   };
 
-  // 테마 색상 (축구: 파랑, 야구: 빨강)
+  // 모드에 따른 색상 설정
   const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
   const hoverBgColor = sportMode === 'soccer' ? '#f0f4ff' : '#fff0f0';
 
   return (
     <header style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 1020, backgroundColor: 'transparent' }}>
 
+      {/* 동적 스타일링을 위한 내부 style 태그 */}
       <style>
         {`
           .nav-link-custom { color: #212529; transition: all 0.3s ease; }
@@ -54,6 +54,7 @@ function Header({ sportMode, setSportMode }) {
             <ul className="navbar-nav ms-auto align-items-center gap-4">
               <li className="nav-item"><Link className="nav-link nav-link-custom fw-semibold" to="/">Home</Link></li>
 
+              {/* Teams 드롭다운 */}
               <li className="nav-item dropdown"
                 onMouseEnter={() => setIsTeamsOpen(true)}
                 onMouseLeave={() => setIsTeamsOpen(false)}
@@ -71,7 +72,7 @@ function Header({ sportMode, setSportMode }) {
               <li className="nav-item"><Link className="nav-link nav-link-custom fw-semibold" to="/community">Community</Link></li>
               <li className="nav-item"><Link className="nav-link nav-link-custom fw-semibold" to="/ticket">Ticket</Link></li>
 
-              {/* 토글 버튼 */}
+              {/* 스포츠 모드 전환 버튼 */}
               <li className="nav-item d-none d-lg-block">
                 <button
                   className="btn rounded-pill px-4 fw-bold text-white"

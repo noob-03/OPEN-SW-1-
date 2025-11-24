@@ -8,10 +8,8 @@ function MainPage({ sportMode }) {
     const [showPanel, setShowPanel] = useState(false);
     const [panelType, setPanelType] = useState('news');
 
-    // 테마 색상 (Soccer: 파랑, Baseball: 빨강)
     const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
 
-    // --- Mock Data ---
     const matchSchedule = [
         { id: 1, time: "01:30", home: "아스날", away: "토트넘", homeLogo: "🔴", awayLogo: "⚪" },
         { id: 2, time: "01:30", home: "프랑크", away: "우니온", homeLogo: "🦅", awayLogo: "🐻" },
@@ -77,13 +75,10 @@ function MainPage({ sportMode }) {
         <div style={{ position: 'relative', minHeight: '100vh' }}>
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
 
-                {/* 상단 섹션 (타이틀 + 내정보 카드) */}
                 <div className="row align-items-center mb-5">
                     <div className="col-lg-7 d-flex flex-column justify-content-center mb-4 mb-lg-0">
                         <h1 className="display-3 fw-bold mb-4" style={{ color: themeColor, lineHeight: '1.2', transition: 'color 0.5s ease' }}>
-                            All Your <br />
-                            Sports, All In <br />
-                            One Place
+                            All Your <br /> Sports, All In <br /> One Place
                         </h1>
                         <p className="text-muted fs-5 mb-0">Check Schedules, Book Tickets,</p>
                         <p className="text-muted fs-5">And Join The Fan Community For KBO And K-League</p>
@@ -93,53 +88,29 @@ function MainPage({ sportMode }) {
                         <div className="card p-4 h-100" style={styles.glassCard}>
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <h4 className="fw-bold m-0">My Page</h4>
-                                <button onClick={handleLogout} className="btn btn-sm btn-outline-danger border-0 rounded-circle p-2" title="로그아웃">
-                                    <LogOut size={16} />
-                                </button>
+                                <button onClick={handleLogout} className="btn btn-sm btn-outline-danger border-0 rounded-circle p-2" title="로그아웃"><LogOut size={16} /></button>
                             </div>
-
                             <div className="d-flex flex-column align-items-center mb-4">
                                 <div style={styles.profileAvatar}>
                                     {userInfo.nickname ? userInfo.nickname[0] : <User />}
                                 </div>
                                 <h5 className="fw-bold">{userInfo.nickname}</h5>
                             </div>
-
                             <div className="row g-3 mb-3">
-                                <div className="col-6">
-                                    <div onClick={() => openPanel('news')} style={styles.actionButton}>
-                                        <Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)
-                                    </div>
-                                </div>
-                                <div className="col-6">
-                                    <div onClick={() => openPanel('message')} style={styles.actionButton}>
-                                        <MessageSquare className="me-2" size={20} style={{color: themeColor}}/> 쪽지 (5)
-                                    </div>
-                                </div>
-                                <div className="col-6">
-                                    <div onClick={handleAccountManage} style={styles.actionButton}>
-                                        <Settings className="me-2" size={20} style={{color: themeColor}}/> 내 정보 관리
-                                    </div>
-                                </div>
-                                <div className="col-6">
-                                    <div style={styles.actionButton}>
-                                        <Users className="me-2" size={20} style={{color: themeColor}}/> 팀 팔로우
-                                    </div>
-                                </div>
+                                <div className="col-6"><div onClick={() => openPanel('news')} style={styles.actionButton}><Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)</div></div>
+                                <div className="col-6"><div onClick={() => openPanel('message')} style={styles.actionButton}><MessageSquare className="me-2" size={20} style={{color: themeColor}}/> 쪽지 (5)</div></div>
+                                <div className="col-6"><div onClick={handleAccountManage} style={styles.actionButton}><Settings className="me-2" size={20} style={{color: themeColor}}/> 내 정보 관리</div></div>
+                                <div className="col-6"><div style={styles.actionButton}><Users className="me-2" size={20} style={{color: themeColor}}/> 팀 팔로우</div></div>
                             </div>
-
                             <div className="mt-auto pt-3 border-top">
-                                <div style={styles.actionButton}>
-                                    <HelpCircle className="me-2" size={20} /> 고객 센터
-                                </div>
+                                <div style={styles.actionButton}><HelpCircle className="me-2" size={20} /> 고객 센터</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 하단 섹션 (경기일정, 인기글) - 복구됨 */}
+                {/* 하단 섹션 */}
                 <div className="row g-4">
-                    {/* 경기 일정 카드 */}
                     <div className="col-lg-5">
                         <div className="card p-4 border-0 shadow-sm" style={{ ...styles.glassCard, minHeight: '400px', backgroundColor: 'rgba(255,255,255,0.9)' }}>
                              <h4 className="fw-bold mb-4">경기일정</h4>
@@ -150,20 +121,13 @@ function MainPage({ sportMode }) {
                                             <span className="fs-5">{match.homeLogo}</span>
                                             <span className="fw-semibold text-truncate">{match.home}</span>
                                         </div>
-                                        <div className="text-center text-muted small" style={{width: '30%'}}>
-                                            <span className="fw-bold text-dark">{match.time}</span>
-                                        </div>
-                                        <div className="d-flex align-items-center justify-content-end gap-2" style={{width: '35%'}}>
-                                            <span className="fw-semibold text-truncate">{match.away}</span>
-                                            <span className="fs-5">{match.awayLogo}</span>
-                                        </div>
+                                        <div className="text-center text-muted small" style={{width: '30%'}}><span className="fw-bold text-dark">{match.time}</span></div>
+                                        <div className="d-flex align-items-center justify-content-end gap-2" style={{width: '35%'}}><span className="fw-semibold text-truncate">{match.away}</span><span className="fs-5">{match.awayLogo}</span></div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
-
-                    {/* 인기 게시글 카드 */}
                     <div className="col-lg-7">
                         <div className="card p-4 border-0 shadow-sm" style={{ ...styles.glassCard, minHeight: '400px', backgroundColor: 'rgba(255,255,255,0.9)' }}>
                             <h4 className="fw-bold mb-4">인기 게시글</h4>
@@ -183,28 +147,17 @@ function MainPage({ sportMode }) {
                 </div>
             </div>
 
-            {/* Side Panel (사이드바) - 복구됨 */}
-            <div className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`}
-                style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }}
-                onClick={closePanel}></div>
-
-            <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4"
-                style={{ width: 'min(100%, 400px)', right: showPanel ? '0' : '-100%', transition: 'right 0.3s cubic-bezier(0.25, 1, 0.5, 1)', zIndex: 1060, overflowY: 'auto' }}>
+            {/* Side Panel */}
+            <div className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`} style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }} onClick={closePanel}></div>
+            <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4" style={{ width: 'min(100%, 400px)', right: showPanel ? '0' : '-100%', transition: 'right 0.3s cubic-bezier(0.25, 1, 0.5, 1)', zIndex: 1060, overflowY: 'auto' }}>
                 <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                    <h5 className="m-0 fw-bold d-flex align-items-center" style={{ color: themeColor }}>
-                        <panelContent.Icon size={24} className="me-2" />
-                        {panelContent.title}
-                    </h5>
+                    <h5 className="m-0 fw-bold d-flex align-items-center" style={{ color: themeColor }}><panelContent.Icon size={24} className="me-2" />{panelContent.title}</h5>
                     <button className="btn btn-link p-0 text-dark" onClick={closePanel}><X size={24} /></button>
                 </div>
                 <div className="list-group list-group-flush">
                     {panelContent.list.map((item, index) => (
                         <div key={index} className="list-group-item border-0 p-3 rounded-3 mb-2 bg-light">
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="fw-bold text-truncate">{item.label}</span>
-                                <small className="text-muted">{item.date}</small>
-                            </div>
-                            {item.sub && <small className="text-muted">{item.sub}</small>}
+                            <span className="fw-bold">{item.label}</span>
                         </div>
                     ))}
                 </div>
