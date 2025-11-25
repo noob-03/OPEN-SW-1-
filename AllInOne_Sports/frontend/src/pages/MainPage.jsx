@@ -1,10 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAccess } from "../util/fetchUtil";
 import { LogOut, User, MessageSquare, Bell, Users, HelpCircle, Settings, X, Loader2 } from 'lucide-react';
+
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 function MainPage({ sportMode }) {
     const navigate = useNavigate();
-    const [userInfo, setUserInfo] = useState({ nickname: "TestUser", email: "test@example.com" });
+    const [userInfo, setUserInfo] = useState(null);
+    const [error, setError] = useState('');
+
     const [showPanel, setShowPanel] = useState(false);
     const [panelType, setPanelType] = useState('news');
 
@@ -32,6 +37,43 @@ function MainPage({ sportMode }) {
         { id: 1, sender: "운영팀", text: "가입을 환영합니다! 이용 가이드 확인해주세요.", date: "2025-11-20" },
         { id: 2, sender: "김철수", text: "오늘 경기 같이 보러 가실래요?", date: "2025-11-18" },
     ];
+
+    useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
+        
+        if (!accessToken) {
+            // 토큰이 없으면 로그인 페이지로 리다이렉트
+            navigate('/');
+            return;
+        }
+
+        const fetchUserInfo = async () => {
+            setError('');
+
+            try {
+                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!res.ok) {
+                    throw new Error("유저 정보 불러오기 실패");
+                }
+
+                const data = await res.json();
+                setUserInfo(data);
+
+            } catch (err) {
+                setError("유저 정보를 불러오지 못했습니다.");
+            }
+        };
+
+        fetchUserInfo();
+
+    }, []);
 
     const panelContent = useMemo(() => {
         if (panelType === 'news') {
@@ -70,7 +112,6 @@ function MainPage({ sportMode }) {
             fontSize: '0.9rem', fontWeight: '600', color: '#333'
         }
     };
-
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
@@ -92,9 +133,9 @@ function MainPage({ sportMode }) {
                             </div>
                             <div className="d-flex flex-column align-items-center mb-4">
                                 <div style={styles.profileAvatar}>
-                                    {userInfo.nickname ? userInfo.nickname[0] : <User />}
+                                    {userInfo?.nickname ? userInfo.nickname[0] : <User />}
                                 </div>
-                                <h5 className="fw-bold">{userInfo.nickname}</h5>
+                                <h5 className="fw-bold">{userInfo?.nickname}</h5>
                             </div>
                             <div className="row g-3 mb-3">
                                 <div className="col-6"><div onClick={() => openPanel('news')} style={styles.actionButton}><Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)</div></div>
