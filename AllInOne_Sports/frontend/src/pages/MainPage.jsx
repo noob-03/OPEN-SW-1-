@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAccess } from "../util/fetchUtil";
 import { LogOut, User, MessageSquare, Bell, Users, HelpCircle, Settings, X, Loader2 } from 'lucide-react';
+
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 function MainPage({ sportMode }) {
     const navigate = useNavigate();
@@ -82,6 +85,43 @@ function MainPage({ sportMode }) {
     ];
     // const messageData = ... (더 이상 사용하지 않으므로 제거 가능하지만 남겨둠)
 
+    useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
+        
+        if (!accessToken) {
+            // 토큰이 없으면 로그인 페이지로 리다이렉트
+            navigate('/');
+            return;
+        }
+
+        const fetchUserInfo = async () => {
+            setError('');
+
+            try {
+                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!res.ok) {
+                    throw new Error("유저 정보 불러오기 실패");
+                }
+
+                const data = await res.json();
+                setUserInfo(data);
+
+            } catch (err) {
+                setError("유저 정보를 불러오지 못했습니다.");
+            }
+        };
+
+        fetchUserInfo();
+
+    }, []);
+
     const panelContent = useMemo(() => {
         // 'message' 타입일 때의 로직은 이제 필요 없지만 구조 유지를 위해 남겨둠 (혹은 에러 방지)
         if (panelType === 'news') {
@@ -123,7 +163,6 @@ function MainPage({ sportMode }) {
             fontSize: '0.9rem', fontWeight: '600', color: '#333'
         }
     };
-
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
 
