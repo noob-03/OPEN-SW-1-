@@ -8,95 +8,25 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 function MainPage({ sportMode }) {
     const navigate = useNavigate();
 
-    // 초기값 설정
     const [userInfo, setUserInfo] = useState({ nickname: "", email: "" });
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const [showPanel, setShowPanel] = useState(false);
     const [panelType, setPanelType] = useState('news');
 
     const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
 
-    // 백엔드 URL
-    const BACKEND_API_BASE_URL = 'http://localhost:8080';
-
-    // --- 사용자 정보 가져오기 ---
-    useEffect(() => {
-        const fetchUserInfo = async () => {
-            const token = localStorage.getItem('accessToken');
-
-            if (!token) {
-                // navigate('/login'); // 실제 사용 시 주석 해제
-                // return;
-            }
-
-            try {
-                const response = await fetch(`${BACKEND_API_BASE_URL}/user/me`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("내 정보 가져오기 성공:", data);
-                    setUserInfo({
-                        nickname: data.nickname,
-                        email: data.email
-                    });
-                } else {
-                    throw new Error("API 요청 실패");
-                }
-            } catch (error) {
-                console.error("내 정보 로드 실패 (테스트 데이터를 사용합니다):", error);
-                setUserInfo({
-                    nickname: "sang",
-                    email: "sang@sang.com"
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchUserInfo();
-    }, [navigate]);
-
-
-    // --- Mock Data ---
-    const matchSchedule = [
-        { id: 1, time: "01:30", home: "아스날", away: "토트넘", homeLogo: "🔴", awayLogo: "⚪" },
-        { id: 2, time: "01:30", home: "프랑크", away: "우니온", homeLogo: "🦅", awayLogo: "🐻" },
-        { id: 3, time: "04:30", home: "인터밀란", away: "AC밀란", homeLogo: "🔵", awayLogo: "🔴" },
-        { id: 4, time: "05:00", home: "엘체", away: "레알마드", homeLogo: "🟢", awayLogo: "👑" },
-    ];
-    const popularPosts = [
-        { id: 1, title: "진짜 역대급 미친 경기력ㄷㄷ... 어제 맨시티 경기 하이라이트", views: 100 },
-        { id: 2, title: "아스날의 새로운 유니폼 디자인 보셨나요? 바코드 논란이네요", views: 100 },
-        { id: 3, title: "여러분은 현재 첼시 포체티노 감독의 전술 운영에 만족하시나요?", views: 100 },
-        { id: 4, title: "(속보) 음바페, 다음 이적 시장에서 사우디 알 힐랄과 접촉 중...", views: 100 },
-        { id: 5, title: "제가 직관 가서 찍은 이강인 선수의 팬 서비스 사진입니다.", views: 100 },
-    ];
-    const newsData = [
-        { id: 1, text: "새로운 이벤트 'All-in-One 페스티벌'이 시작되었습니다!", date: "2025-11-20" },
-        { id: 2, text: "시스템 업데이트 공지: 2025년 12월 1일 새벽 2시", date: "2025-11-15" },
-        { id: 3, text: "쪽지 3건이 도착했습니다.", date: "2025-11-10" },
-    ];
-    // const messageData = ... (더 이상 사용하지 않으므로 제거 가능하지만 남겨둠)
-
+    /* 🔹 사용자 정보 불러오기 */
     useEffect(() => {
         const accessToken = localStorage.getItem("accessToken");
-        
+
         if (!accessToken) {
-            // 토큰이 없으면 로그인 페이지로 리다이렉트
             navigate('/');
             return;
         }
 
         const fetchUserInfo = async () => {
-            setError('');
-
             try {
                 const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
                     method: 'GET',
@@ -106,143 +36,215 @@ function MainPage({ sportMode }) {
                     },
                 });
 
-                if (!res.ok) {
-                    throw new Error("유저 정보 불러오기 실패");
-                }
+                if (!res.ok) throw new Error("유저 정보 불러오기 실패");
 
                 const data = await res.json();
                 setUserInfo(data);
-
             } catch (err) {
                 setError("유저 정보를 불러오지 못했습니다.");
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchUserInfo();
-
     }, []);
 
+    /* 🔹 Mock Data */
+    const matchSchedule = [
+        { id: 1, time: "01:30", home: "아스날", away: "토트넘", homeLogo: "🔴", awayLogo: "⚪" },
+        { id: 2, time: "01:30", home: "프랑크", away: "우니온", homeLogo: "🦅", awayLogo: "🐻" },
+        { id: 3, time: "04:30", home: "인터밀란", away: "AC밀란", homeLogo: "🔵", awayLogo: "🔴" },
+        { id: 4, time: "05:00", home: "엘체", away: "레알마드", homeLogo: "🟢", awayLogo: "👑" },
+    ];
+
+    const popularPosts = [
+        { id: 1, title: "진짜 역대급 미친 경기력ㄷㄷ...", views: 100 },
+        { id: 2, title: "아스날 새 유니폼 바코드 논란", views: 100 },
+        { id: 3, title: "첼시 포체티노 전술 만족하나요?", views: 100 },
+        { id: 4, title: "(속보) 음바페 사우디 접촉 중...", views: 100 },
+        { id: 5, title: "이강인 팬서비스 직찍 공유합니다", views: 100 },
+    ];
+
+    const newsData = [
+        { id: 1, text: "All-in-One 페스티벌이 시작되었습니다!", date: "2025-11-20" },
+        { id: 2, text: "12/1 시스템 업데이트 예정", date: "2025-11-15" },
+        { id: 3, text: "쪽지 3건이 도착했습니다.", date: "2025-11-10" },
+    ];
+
+    /* 🔹 알림/새 소식 패널 */
     const panelContent = useMemo(() => {
-        // 'message' 타입일 때의 로직은 이제 필요 없지만 구조 유지를 위해 남겨둠 (혹은 에러 방지)
         if (panelType === 'news') {
-            return { title: "새 소식", Icon: Bell, list: newsData.map(d => ({ ...d, label: d.text, sub: d.date })) };
+            return {
+                title: "새 소식",
+                Icon: Bell,
+                list: newsData.map(d => ({ label: d.text, sub: d.date }))
+            };
         }
         return { title: "알림", Icon: Bell, list: [] };
     }, [panelType]);
 
-    const openPanel = (type) => { setPanelType(type); setShowPanel(true); };
-    const closePanel = () => { setShowPanel(false); };
+    const openPanel = (type) => {
+        setPanelType(type);
+        setShowPanel(true);
+    };
+
+    const closePanel = () => setShowPanel(false);
+
+    /* 🔹 핸들러 */
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
         window.dispatchEvent(new Event('login-status-change'));
         navigate('/login');
     };
+
     const handleAccountManage = () => navigate('/account');
 
-    // [수정] 쪽지함 페이지로 이동하는 핸들러 추가
     const handleMessagePage = () => navigate('/message');
 
+    /* 🔹 스타일 오브젝트 */
     const styles = {
         glassCard: {
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderRadius: '1.5rem',
-            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+            boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
             border: '1px solid rgba(255, 255, 255, 0.18)',
             backdropFilter: 'blur(4px)',
         },
         profileAvatar: {
-            width: '80px', height: '80px', borderRadius: '50%',
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
             background: `linear-gradient(45deg, ${themeColor}, #BCD9FF)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontSize: '2rem', marginBottom: '1rem',
-            transition: 'background 0.5s ease'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '2rem',
+            marginBottom: '1rem',
+            transition: 'background 0.5s ease',
         },
         actionButton: {
-            border: 'none', background: 'transparent', padding: '10px 0',
-            display: 'flex', alignItems: 'center', cursor: 'pointer',
-            fontSize: '0.9rem', fontWeight: '600', color: '#333'
+            border: 'none',
+            background: 'transparent',
+            padding: '10px 0',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            color: '#333',
         }
     };
+
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
-
-            {/* [MainPage 배경] */}
+            {/* 배경 */}
             <div style={{
-                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1,
-                background: sportMode === 'soccer'
-                  ? 'radial-gradient(circle at top left, #FFFFFF 0%, #BCD9FF 100%)'
-                  : 'radial-gradient(circle at top left, #FFFFFF 0%, #FFC2C2 100%)',
+                position: 'absolute',
+                inset: 0,
+                zIndex: -1,
+                background:
+                    sportMode === 'soccer'
+                        ? 'radial-gradient(circle at top left, #FFFFFF, #BCD9FF)'
+                        : 'radial-gradient(circle at top left, #FFFFFF, #FFC2C2)',
                 transition: 'background 0.5s ease-in-out'
             }} />
 
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
-
                 <div className="row align-items-center mb-5">
-                    <div className="col-lg-7 d-flex flex-column justify-content-center mb-4 mb-lg-0">
-                        <h1 className="display-3 fw-bold mb-4" style={{ color: themeColor, lineHeight: '1.2', transition: 'color 0.5s ease' }}>
+                    <div className="col-lg-7">
+                        <h1 className="display-3 fw-bold mb-4" style={{ color: themeColor }}>
                             All Your <br /> Sports, All In <br /> One Place
                         </h1>
                         <p className="text-muted fs-5 mb-0">Check Schedules, Book Tickets,</p>
-                        <p className="text-muted fs-5">And Join The Fan Community For KBO And K-League</p>
+                        <p className="text-muted fs-5">And Join The Fan Community</p>
                     </div>
 
+                    {/* My Page */}
                     <div className="col-lg-5">
-                        <div className="card p-4 h-100" style={styles.glassCard}>
+                        <div className="card p-4" style={styles.glassCard}>
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <h4 className="fw-bold m-0">My Page</h4>
-                                <button onClick={handleLogout} className="btn btn-sm btn-outline-danger border-0 rounded-circle p-2" title="로그아웃"><LogOut size={16} /></button>
+                                <button onClick={handleLogout} className="btn btn-sm btn-outline-danger border-0 rounded-circle p-2">
+                                    <LogOut size={16} />
+                                </button>
                             </div>
+
                             <div className="d-flex flex-column align-items-center mb-4">
                                 <div style={styles.profileAvatar}>
-                                    {isLoading ? <Loader2 className="animate-spin" /> : (userInfo.nickname ? userInfo.nickname[0].toUpperCase() : <User />)}
+                                    {isLoading ? (
+                                        <Loader2 className="animate-spin" />
+                                    ) : (
+                                        userInfo.nickname ? userInfo.nickname[0].toUpperCase() : <User />
+                                    )}
                                 </div>
+
                                 <h5 className="fw-bold">
                                     {isLoading ? "Loading..." : (userInfo.nickname || "User")}
                                 </h5>
                             </div>
+
+                            {/* 버튼 리스트 */}
                             <div className="row g-3 mb-3">
                                 <div className="col-6">
                                     <div onClick={() => openPanel('news')} style={styles.actionButton}>
-                                        <Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)
+                                        <Bell className="me-2" size={20} style={{ color: themeColor }} /> 새 소식 (3)
                                     </div>
                                 </div>
                                 <div className="col-6">
-                                    {/* [수정] 클릭 시 openPanel 대신 handleMessagePage 실행 */}
                                     <div onClick={handleMessagePage} style={styles.actionButton}>
-                                        <MessageSquare className="me-2" size={20} style={{color: themeColor}}/> 쪽지 (5)
+                                        <MessageSquare className="me-2" size={20} style={{ color: themeColor }} /> 쪽지 (5)
                                     </div>
                                 </div>
-                                <div className="col-6"><div onClick={handleAccountManage} style={styles.actionButton}><Settings className="me-2" size={20} style={{color: themeColor}}/> 내 정보 관리</div></div>
-                                <div className="col-6"><div style={styles.actionButton}><Users className="me-2" size={20} style={{color: themeColor}}/> 팀 팔로우</div></div>
+                                <div className="col-6">
+                                    <div onClick={handleAccountManage} style={styles.actionButton}>
+                                        <Settings className="me-2" size={20} style={{ color: themeColor }} /> 내 정보 관리
+                                    </div>
+                                </div>
+                                <div className="col-6">
+                                    <div style={styles.actionButton}>
+                                        <Users className="me-2" size={20} style={{ color: themeColor }} /> 팀 팔로우
+                                    </div>
+                                </div>
                             </div>
+
                             <div className="mt-auto pt-3 border-top">
-                                <div style={styles.actionButton}><HelpCircle className="me-2" size={20} /> 고객 센터</div>
+                                <div style={styles.actionButton}>
+                                    <HelpCircle className="me-2" size={20} /> 고객 센터
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 하단 섹션 (경기일정, 인기글) */}
+                {/* 경기 일정 + 인기 게시글 */}
                 <div className="row g-4">
                     <div className="col-lg-5">
-                        <div className="card p-4 border-0 shadow-sm" style={{ ...styles.glassCard, minHeight: '400px', backgroundColor: 'rgba(255,255,255,0.9)' }}>
-                             <h4 className="fw-bold mb-4">경기일정</h4>
-                             <div className="d-flex flex-column gap-3">
-                                {matchSchedule.map((match) => (
+                        <div className="card p-4 border-0 shadow-sm" style={styles.glassCard}>
+                            <h4 className="fw-bold mb-4">경기일정</h4>
+                            <div className="d-flex flex-column gap-3">
+                                {matchSchedule.map(match => (
                                     <div key={match.id} className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                        <div className="d-flex align-items-center gap-2" style={{width: '35%'}}>
+                                        <div className="d-flex align-items-center gap-2" style={{ width: '35%' }}>
                                             <span className="fs-5">{match.homeLogo}</span>
                                             <span className="fw-semibold text-truncate">{match.home}</span>
                                         </div>
-                                        <div className="text-center text-muted small" style={{width: '30%'}}><span className="fw-bold text-dark">{match.time}</span></div>
-                                        <div className="d-flex align-items-center justify-content-end gap-2" style={{width: '35%'}}><span className="fw-semibold text-truncate">{match.away}</span><span className="fs-5">{match.awayLogo}</span></div>
+                                        <div className="text-center text-muted small" style={{ width: '30%' }}>
+                                            <span className="fw-bold text-dark">{match.time}</span>
+                                        </div>
+                                        <div className="d-flex align-items-center justify-content-end gap-2" style={{ width: '35%' }}>
+                                            <span className="fw-semibold text-truncate">{match.away}</span>
+                                            <span className="fs-5">{match.awayLogo}</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
+
                     <div className="col-lg-7">
-                        <div className="card p-4 border-0 shadow-sm" style={{ ...styles.glassCard, minHeight: '400px', backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                        <div className="card p-4 border-0 shadow-sm" style={styles.glassCard}>
                             <h4 className="fw-bold mb-4">인기 게시글</h4>
                             <div className="d-flex flex-column gap-3">
                                 {popularPosts.map((post, index) => (
@@ -251,30 +253,46 @@ function MainPage({ sportMode }) {
                                             <span className="fw-bold me-3 text-muted">{index + 1}.</span>
                                             <span className="text-truncate fw-medium">{post.title}</span>
                                         </div>
-                                        <span className="text-muted small ms-2">{post.views}</span>
+                                        <span className="text-muted small">{post.views}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            {/* Slide Panel */}
-            <div className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`} style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }} onClick={closePanel}></div>
-            <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4" style={{ width: 'min(100%, 400px)', right: showPanel ? '0' : '-100%', transition: 'right 0.3s cubic-bezier(0.25, 1, 0.5, 1)', zIndex: 1060, overflowY: 'auto' }}>
+            {/* 오른쪽 패널 */}
+            <div
+                className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`}
+                style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }}
+                onClick={closePanel}
+            />
+
+            <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4"
+                style={{
+                    width: 'min(100%, 400px)',
+                    right: showPanel ? '0' : '-100%',
+                    transition: 'right 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+                    zIndex: 1060,
+                    overflowY: 'auto'
+                }}>
                 <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                    <h5 className="m-0 fw-bold d-flex align-items-center" style={{ color: themeColor }}><panelContent.Icon size={24} className="me-2" />{panelContent.title}</h5>
-                    <button className="btn btn-link p-0 text-dark" onClick={closePanel}><X size={24} /></button>
+                    <h5 className="fw-bold m-0 d-flex align-items-center" style={{ color: themeColor }}>
+                        <panelContent.Icon size={24} className="me-2" />
+                        {panelContent.title}
+                    </h5>
+                    <button className="btn btn-link p-0" onClick={closePanel}>
+                        <X size={24} />
+                    </button>
                 </div>
+
                 <div className="list-group list-group-flush">
                     {panelContent.list.map((item, index) => (
-                        <div key={index} className="list-group-item border-0 p-3 rounded-3 mb-2 bg-light">
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="fw-bold text-truncate">{item.label}</span>
-                                <small className="text-muted">{item.date}</small>
-                            </div>
-                            {item.sub && <small className="text-muted">{item.sub}</small>}
+                        <div key={index} className="list-group-item border-0 p-3 mb-2 bg-light rounded-3">
+                            <span className="fw-bold">{item.label}</span>
+                            <div className="text-muted small mt-1">{item.sub}</div>
                         </div>
                     ))}
                 </div>
