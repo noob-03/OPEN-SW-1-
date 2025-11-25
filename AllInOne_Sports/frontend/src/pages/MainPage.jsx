@@ -7,14 +7,64 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 function MainPage({ sportMode }) {
     const navigate = useNavigate();
-    const [userInfo, setUserInfo] = useState(null);
-    const [error, setError] = useState('');
+
+    // 초기값 설정
+    const [userInfo, setUserInfo] = useState({ nickname: "", email: "" });
+    const [isLoading, setIsLoading] = useState(true);
 
     const [showPanel, setShowPanel] = useState(false);
     const [panelType, setPanelType] = useState('news');
 
     const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
 
+    // 백엔드 URL
+    const BACKEND_API_BASE_URL = 'http://localhost:8080';
+
+    // --- 사용자 정보 가져오기 ---
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                // navigate('/login'); // 실제 사용 시 주석 해제
+                // return;
+            }
+
+            try {
+                const response = await fetch(`${BACKEND_API_BASE_URL}/user/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("내 정보 가져오기 성공:", data);
+                    setUserInfo({
+                        nickname: data.nickname,
+                        email: data.email
+                    });
+                } else {
+                    throw new Error("API 요청 실패");
+                }
+            } catch (error) {
+                console.error("내 정보 로드 실패 (테스트 데이터를 사용합니다):", error);
+                setUserInfo({
+                    nickname: "sang",
+                    email: "sang@sang.com"
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserInfo();
+    }, [navigate]);
+
+
+    // --- Mock Data ---
     const matchSchedule = [
         { id: 1, time: "01:30", home: "아스날", away: "토트넘", homeLogo: "🔴", awayLogo: "⚪" },
         { id: 2, time: "01:30", home: "프랑크", away: "우니온", homeLogo: "🦅", awayLogo: "🐻" },
@@ -33,10 +83,7 @@ function MainPage({ sportMode }) {
         { id: 2, text: "시스템 업데이트 공지: 2025년 12월 1일 새벽 2시", date: "2025-11-15" },
         { id: 3, text: "쪽지 3건이 도착했습니다.", date: "2025-11-10" },
     ];
-    const messageData = [
-        { id: 1, sender: "운영팀", text: "가입을 환영합니다! 이용 가이드 확인해주세요.", date: "2025-11-20" },
-        { id: 2, sender: "김철수", text: "오늘 경기 같이 보러 가실래요?", date: "2025-11-18" },
-    ];
+    // const messageData = ... (더 이상 사용하지 않으므로 제거 가능하지만 남겨둠)
 
     useEffect(() => {
         const accessToken = localStorage.getItem("accessToken");
@@ -76,10 +123,11 @@ function MainPage({ sportMode }) {
     }, []);
 
     const panelContent = useMemo(() => {
+        // 'message' 타입일 때의 로직은 이제 필요 없지만 구조 유지를 위해 남겨둠 (혹은 에러 방지)
         if (panelType === 'news') {
             return { title: "새 소식", Icon: Bell, list: newsData.map(d => ({ ...d, label: d.text, sub: d.date })) };
         }
-        return { title: "쪽지함", Icon: MessageSquare, list: messageData.map(d => ({ ...d, label: d.sender, sub: d.text, date: d.date })) };
+        return { title: "알림", Icon: Bell, list: [] };
     }, [panelType]);
 
     const openPanel = (type) => { setPanelType(type); setShowPanel(true); };
@@ -90,6 +138,9 @@ function MainPage({ sportMode }) {
         navigate('/login');
     };
     const handleAccountManage = () => navigate('/account');
+
+    // [수정] 쪽지함 페이지로 이동하는 핸들러 추가
+    const handleMessagePage = () => navigate('/message');
 
     const styles = {
         glassCard: {
@@ -114,6 +165,16 @@ function MainPage({ sportMode }) {
     };
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
+
+            {/* [MainPage 배경] */}
+            <div style={{
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1,
+                background: sportMode === 'soccer'
+                  ? 'radial-gradient(circle at top left, #FFFFFF 0%, #BCD9FF 100%)'
+                  : 'radial-gradient(circle at top left, #FFFFFF 0%, #FFC2C2 100%)',
+                transition: 'background 0.5s ease-in-out'
+            }} />
+
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
 
                 <div className="row align-items-center mb-5">
@@ -133,13 +194,24 @@ function MainPage({ sportMode }) {
                             </div>
                             <div className="d-flex flex-column align-items-center mb-4">
                                 <div style={styles.profileAvatar}>
-                                    {userInfo?.nickname ? userInfo.nickname[0] : <User />}
+                                    {isLoading ? <Loader2 className="animate-spin" /> : (userInfo.nickname ? userInfo.nickname[0].toUpperCase() : <User />)}
                                 </div>
-                                <h5 className="fw-bold">{userInfo?.nickname}</h5>
+                                <h5 className="fw-bold">
+                                    {isLoading ? "Loading..." : (userInfo.nickname || "User")}
+                                </h5>
                             </div>
                             <div className="row g-3 mb-3">
-                                <div className="col-6"><div onClick={() => openPanel('news')} style={styles.actionButton}><Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)</div></div>
-                                <div className="col-6"><div onClick={() => openPanel('message')} style={styles.actionButton}><MessageSquare className="me-2" size={20} style={{color: themeColor}}/> 쪽지 (5)</div></div>
+                                <div className="col-6">
+                                    <div onClick={() => openPanel('news')} style={styles.actionButton}>
+                                        <Bell className="me-2" size={20} style={{color: themeColor}}/> 새 소식 (3)
+                                    </div>
+                                </div>
+                                <div className="col-6">
+                                    {/* [수정] 클릭 시 openPanel 대신 handleMessagePage 실행 */}
+                                    <div onClick={handleMessagePage} style={styles.actionButton}>
+                                        <MessageSquare className="me-2" size={20} style={{color: themeColor}}/> 쪽지 (5)
+                                    </div>
+                                </div>
                                 <div className="col-6"><div onClick={handleAccountManage} style={styles.actionButton}><Settings className="me-2" size={20} style={{color: themeColor}}/> 내 정보 관리</div></div>
                                 <div className="col-6"><div style={styles.actionButton}><Users className="me-2" size={20} style={{color: themeColor}}/> 팀 팔로우</div></div>
                             </div>
@@ -150,7 +222,7 @@ function MainPage({ sportMode }) {
                     </div>
                 </div>
 
-                {/* 하단 섹션 */}
+                {/* 하단 섹션 (경기일정, 인기글) */}
                 <div className="row g-4">
                     <div className="col-lg-5">
                         <div className="card p-4 border-0 shadow-sm" style={{ ...styles.glassCard, minHeight: '400px', backgroundColor: 'rgba(255,255,255,0.9)' }}>
@@ -188,7 +260,7 @@ function MainPage({ sportMode }) {
                 </div>
             </div>
 
-            {/* Side Panel */}
+            {/* Slide Panel */}
             <div className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`} style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }} onClick={closePanel}></div>
             <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4" style={{ width: 'min(100%, 400px)', right: showPanel ? '0' : '-100%', transition: 'right 0.3s cubic-bezier(0.25, 1, 0.5, 1)', zIndex: 1060, overflowY: 'auto' }}>
                 <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
@@ -198,7 +270,11 @@ function MainPage({ sportMode }) {
                 <div className="list-group list-group-flush">
                     {panelContent.list.map((item, index) => (
                         <div key={index} className="list-group-item border-0 p-3 rounded-3 mb-2 bg-light">
-                            <span className="fw-bold">{item.label}</span>
+                            <div className="d-flex justify-content-between mb-1">
+                                <span className="fw-bold text-truncate">{item.label}</span>
+                                <small className="text-muted">{item.date}</small>
+                            </div>
+                            {item.sub && <small className="text-muted">{item.sub}</small>}
                         </div>
                     ))}
                 </div>
