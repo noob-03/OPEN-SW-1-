@@ -72,7 +72,7 @@ function MainPage({ sportMode }) {
         { id: 3, text: "쪽지 3건이 도착했습니다.", date: "2025-11-10" },
     ];
 
-    /* 🔹 알림/새 소식 패널 */
+    /* 🔹 패널 useMemo 수정 */
     const panelContent = useMemo(() => {
         if (panelType === 'news') {
             return {
@@ -102,7 +102,7 @@ function MainPage({ sportMode }) {
 
     const handleMessagePage = () => navigate('/message');
 
-    /* 🔹 스타일 오브젝트 */
+    /* 🔹 스타일 */
     const styles = {
         glassCard: {
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -139,19 +139,11 @@ function MainPage({ sportMode }) {
 
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
-            {/* 배경 */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: -1,
-                background:
-                    sportMode === 'soccer'
-                        ? 'radial-gradient(circle at top left, #FFFFFF, #BCD9FF)'
-                        : 'radial-gradient(circle at top left, #FFFFFF, #FFC2C2)',
-                transition: 'background 0.5s ease-in-out'
-            }} />
+            {/* App.jsx에서 배경 처리하므로 제거 */}
 
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
+
+                {/* 상단: My Page */}
                 <div className="row align-items-center mb-5">
                     <div className="col-lg-7">
                         <h1 className="display-3 fw-bold mb-4" style={{ color: themeColor }}>
@@ -260,17 +252,17 @@ function MainPage({ sportMode }) {
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            {/* 오른쪽 패널 */}
+            {/* 🔹 오른쪽 패널 */}
             <div
                 className={`position-fixed top-0 start-0 w-100 h-100 bg-dark ${showPanel ? 'visible' : 'invisible'}`}
                 style={{ zIndex: 1050, opacity: showPanel ? 0.5 : 0, transition: 'opacity 0.3s' }}
                 onClick={closePanel}
             />
 
-            <div className="position-fixed top-0 h-100 bg-white shadow-lg p-4"
+            <div
+                className="position-fixed top-0 h-100 bg-white shadow-lg p-4"
                 style={{
                     width: 'min(100%, 400px)',
                     right: showPanel ? '0' : '-100%',
@@ -278,16 +270,23 @@ function MainPage({ sportMode }) {
                     zIndex: 1060,
                     overflowY: 'auto'
                 }}>
+
+                {/* 패널 타이틀 */}
                 <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                     <h5 className="fw-bold m-0 d-flex align-items-center" style={{ color: themeColor }}>
-                        <panelContent.Icon size={24} className="me-2" />
+                        {(() => {
+                            const Icon = panelContent.Icon;
+                            return <Icon size={24} className="me-2" />;
+                        })()}
                         {panelContent.title}
                     </h5>
+
                     <button className="btn btn-link p-0" onClick={closePanel}>
                         <X size={24} />
                     </button>
                 </div>
 
+                {/* 리스트 */}
                 <div className="list-group list-group-flush">
                     {panelContent.list.map((item, index) => (
                         <div key={index} className="list-group-item border-0 p-3 mb-2 bg-light rounded-3">
