@@ -11,21 +11,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeamService {
 
-    private final TeamRepository teamRepository;
+    private final TeamRepository repo;
 
-    // 전체 팀 조회
-    public List<TeamEntity> findAllTeams() {
-        return teamRepository.findAll();
+    public List<TeamEntity> getAllTeams() {
+        return repo.findAll();
     }
 
-    // 특정 teamid 로 팀 조회하는 기능
-    public TeamEntity findById(Long id) {
-        return teamRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Team not found: " + id));
+    public List<TeamEntity> getTeamsBySport(Integer sportId) {
+        return repo.findBySportId(sportId);
     }
 
-    public List<TeamEntity> findBySportId(Long sportId) {
-        return teamRepository.findBySport_Sportid(sportId);
+    public TeamEntity getTeam(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Team not found: " + id));
     }
 
+    public TeamEntity getTeamByName(String name) {
+        return repo.findByName(name)
+                .orElseThrow(() -> new RuntimeException("Team not found: " + name));
+    }
+
+    public String getTeamLogo(Long id) {
+        return getTeam(id).getLogoUrl();
+    }
+
+    public String getTeamLogoByName(String name) {
+        return getTeamByName(name).getLogoUrl();
+    }
 }
