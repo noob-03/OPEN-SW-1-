@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 
 const MOCK_TOP_MATCHES = [
@@ -15,6 +15,7 @@ const MOCK_TOP_MATCHES = [
 
 const LoginPage = ({ sportMode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -31,15 +32,12 @@ const LoginPage = ({ sportMode }) => {
     return tempChunks;
   }, []);
 
-  const nextSlide = () =>
-    setCurrentSlide((prev) => (prev + 1) % chunks.length);
-
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % chunks.length);
   const prevSlide = () =>
     setCurrentSlide((prev) => (prev - 1 + chunks.length) % chunks.length);
 
   const BACKEND_API_BASE_URL = 'http://localhost:8080';
 
-  // ✔ 로그인 핸들러 수정
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage("");
@@ -52,9 +50,7 @@ const LoginPage = ({ sportMode }) => {
     try {
       const response = await fetch(`${BACKEND_API_BASE_URL}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
 
@@ -63,10 +59,7 @@ const LoginPage = ({ sportMode }) => {
       }
 
       const data = await response.json();
-
-      if (!data.accessToken) {
-        throw new Error("토큰을 받아오지 못했습니다.");
-      }
+      if (!data.accessToken) throw new Error("토큰을 받아오지 못했습니다.");
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
@@ -75,17 +68,12 @@ const LoginPage = ({ sportMode }) => {
       navigate('/main');
 
     } catch (error) {
-      console.error("Login Error:", error);
       setErrorMessage(error.message);
     }
   };
 
   const handleSocialLogin = (provider) => {
     window.location.href = `${BACKEND_API_BASE_URL}/oauth2/authorization/${provider}`;
-  };
-
-  const handleSignUp = () => {
-    navigate('/join');
   };
 
   const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
@@ -99,17 +87,17 @@ const LoginPage = ({ sportMode }) => {
     return () => clearInterval(interval);
   }, [chunks.length]);
 
-  const token = localStorage.getItem("accessToken");
+  // 🔥 라우터 주소 기반 배경 width 애니메이션
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
 
   const backgroundObjectStyle = {
     position: 'absolute',
     top: 0,
     right: 0,
     height: '100%',
-    width: token ? '100%' : '50%',
+    width: isLoginPage ? "50%" : "100%",
     zIndex: 0,
-    transition:
-      'width 1.2s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.5s ease-in-out',
+    transition: "width 1.2s cubic-bezier(0.25, 0.8, 0.25, 1)",
     background:
       sportMode === 'soccer'
         ? 'linear-gradient(155deg, #E0EBFF 0%, #BCD9FF 100%)'
@@ -124,9 +112,9 @@ const LoginPage = ({ sportMode }) => {
   };
 
   return (
-    <div className="container-fluid p-0" style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#FFFFFF' }}>
+    <div className="container-fluid p-0" style={{ backgroundColor: '#FFFFFF' }}>
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <div style={{ position: 'relative', minHeight: '85vh', overflow: 'hidden' }}>
         <div style={backgroundObjectStyle} />
 
@@ -135,8 +123,7 @@ const LoginPage = ({ sportMode }) => {
           {/* LEFT TEXT */}
           <div className="col-lg-6 d-flex flex-column justify-content-center px-5" style={heroColumnStyle}>
             <div className="ps-lg-5 ms-lg-5">
-              <h1 className="display-3 fw-bold mb-4"
-                style={{ color: themeColor, lineHeight: '1.2' }}>
+              <h1 className="display-3 fw-bold mb-4" style={{ color: themeColor }}>
                 All Your Sports,<br />All In One Place
               </h1>
               <p className="text-muted fs-5 mb-0">Check Schedules, Book Tickets,</p>
@@ -144,10 +131,8 @@ const LoginPage = ({ sportMode }) => {
             </div>
           </div>
 
-          {/* RIGHT LOGIN CARD */}
+          {/* RIGHT LOGIN */}
           <div className="col-lg-6 d-flex justify-content-center align-items-center" style={heroColumnStyle}>
-
-            {/* ✔ 폼 적용 */}
             <form
               onSubmit={handleLogin}
               className="card p-5 shadow-lg border-0 text-center"
@@ -160,7 +145,6 @@ const LoginPage = ({ sportMode }) => {
             >
               <h2 className="mb-4 fw-bold text-dark">Sign In</h2>
 
-              {/* 입력 */}
               <div className="mb-3 text-start">
                 <input
                   type="text"
@@ -179,12 +163,8 @@ const LoginPage = ({ sportMode }) => {
                 />
               </div>
 
-              {/* 에러 메시지 */}
-              {errorMessage && (
-                <p className="text-danger small mb-2">{errorMessage}</p>
-              )}
+              {errorMessage && <p className="text-danger small mb-2">{errorMessage}</p>}
 
-              {/* 로그인 */}
               <button
                 type="submit"
                 className="btn w-100 py-3 fw-bold mb-3"
@@ -193,20 +173,14 @@ const LoginPage = ({ sportMode }) => {
                   border: 'none',
                   borderRadius: '0.5rem',
                   color: '#fff',
-                  boxShadow: `0 4px 15px ${
-                    sportMode === 'soccer'
-                      ? 'rgba(92, 103, 242, 0.4)'
-                      : 'rgba(224, 49, 49, 0.4)'
-                  }`,
                 }}
               >
                 Sign In
               </button>
 
-              {/* 회원가입 */}
               <button
                 type="button"
-                onClick={handleSignUp}
+                onClick={() => navigate('/join')}
                 className="btn btn-outline-dark w-100 py-3 fw-bold mb-4"
                 style={{ borderRadius: '0.5rem' }}
               >
@@ -215,37 +189,28 @@ const LoginPage = ({ sportMode }) => {
 
               <p className="text-muted small mb-2">Or continue with</p>
 
-              {/* 소셜 로그인 */}
-              <div className="d-flex flex-column gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('google')}
-                  className="btn btn-outline-secondary w-100 py-2 small d-flex align-items-center justify-content-center"
-                  style={{ borderRadius: '0.5rem' }}
-                >
-                  Google Login
-                </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('google')}
+                className="btn btn-outline-secondary w-100 py-2 small mb-2"
+              >
+                Google Login
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('naver')}
-                  className="btn w-100 py-2 small d-flex align-items-center justify-content-center"
-                  style={{
-                    borderRadius: '0.5rem',
-                    borderColor: '#03C75A',
-                    color: '#03C75A',
-                  }}
-                >
-                  Naver Login
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('naver')}
+                className="btn w-100 py-2 small"
+                style={{ borderColor: '#03C75A', color: '#03C75A' }}
+              >
+                Naver Login
+              </button>
             </form>
-
           </div>
         </div>
       </div>
 
-      {/* 캐러셀 섹션 */}
+      {/* 캐러셀 - 원본 유지 */}
       <section className="container px-5 position-relative"
         style={{ paddingTop: '60px', paddingBottom: '150px', backgroundColor: '#FFF' }}>
 
@@ -256,16 +221,20 @@ const LoginPage = ({ sportMode }) => {
           </h2>
         </div>
 
-        <button onClick={prevSlide}
+        <button
+          onClick={prevSlide}
           className="btn btn-link p-0 position-absolute d-none d-md-block"
-          style={{ left: '-50px', top: arrowTopStyle }}>
-          <ChevronLeft size={40} strokeWidth={1.5} />
+          style={{ left: '-50px', top: arrowTopStyle }}
+        >
+          <ChevronLeft size={40} />
         </button>
 
-        <button onClick={nextSlide}
+        <button
+          onClick={nextSlide}
           className="btn btn-link p-0 position-absolute d-none d-md-block"
-          style={{ right: '-50px', top: arrowTopStyle }}>
-          <ChevronRight size={40} strokeWidth={1.5} />
+          style={{ right: '-50px', top: arrowTopStyle }}
+        >
+          <ChevronRight size={40} />
         </button>
 
         <div style={{ overflow: 'hidden' }}>

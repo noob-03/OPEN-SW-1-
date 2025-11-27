@@ -24,7 +24,7 @@ function CalendarPage({ sportMode }) {
   const filteredMatches = MOCK_MATCHES.filter(match => {
     const matchDate = new Date(match.date);
     const isSameMonth = matchDate.getMonth() === currentDate.getMonth() && matchDate.getFullYear() === currentDate.getFullYear();
-    
+
     // 야구 모드일 경우 KBO, 축구 모드일 경우 K1/K2 필터링
     if (sportMode === 'baseball') {
         return isSameMonth && match.league === 'KBO';
@@ -40,20 +40,20 @@ function CalendarPage({ sportMode }) {
     <div className="container" style={{ paddingTop: '120px', paddingBottom: '80px' }}>
       <div className="d-flex justify-content-between align-items-center mb-5">
         <h2 className="fw-bold" style={{ color: themeColor }}>경기 일정</h2>
-        
+
         {/* 축구 모드일 때만 리그 선택 탭 표시 */}
         {sportMode === 'soccer' && (
             <div className="btn-group" role="group">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     className={`btn ${selectedLeague === 'K1' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setSelectedLeague('K1')}
                     style={{ backgroundColor: selectedLeague === 'K1' ? themeColor : 'transparent', borderColor: themeColor, color: selectedLeague === 'K1' ? '#fff' : themeColor }}
                 >
                     K리그 1
                 </button>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     className={`btn ${selectedLeague === 'K2' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => setSelectedLeague('K2')}
                     style={{ backgroundColor: selectedLeague === 'K2' ? themeColor : 'transparent', borderColor: themeColor, color: selectedLeague === 'K2' ? '#fff' : themeColor }}
@@ -76,7 +76,7 @@ function CalendarPage({ sportMode }) {
             <h4 className="m-0 fw-bold">{formatMonth(currentDate)}</h4>
             <button onClick={() => changeMonth(1)} className="btn btn-light rounded-circle p-2"><ChevronRight /></button>
           </div>
-          
+
           <div style={{ width: '160px' }}></div> {/* 균형 맞추기용 공백 */}
         </div>
       </div>
@@ -121,7 +121,7 @@ function CalendarPage({ sportMode }) {
                                 <span className="fw-bold fs-5">{away.name}</span>
                                 <span style={{fontSize: '2rem'}}>{away.logo}</span>
                             </div>
-                            
+
                             {/* 버튼 영역 */}
                             <div style={{width: '10%'}} className="text-end">
                                 <button className="btn btn-sm btn-outline-secondary">분석</button>
