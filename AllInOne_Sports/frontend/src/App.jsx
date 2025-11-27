@@ -10,7 +10,12 @@ import JoinPage from './pages/JoinPage.jsx';
 import AccountPage from './pages/AccountPage.jsx';
 import CookiePage from './pages/CookiePage.jsx';
 import MessagePage from './pages/MessagePage.jsx';
-import CalendarPage from './pages/CalendarPage.jsx'; // [추가] 캘린더 페이지 임포트
+// 새로 추가된 페이지들
+import CalendarPage from './pages/CalendarPage.jsx';
+import TicketPage from './pages/TicketPage.jsx';
+import TeamPage from './pages/TeamPage.jsx';
+import TeamDetailPage from './pages/TeamDetailPage.jsx';
+import CommunityPage from './pages/CommunityPage.jsx';
 
 function App() {
   const location = useLocation();
@@ -170,6 +175,14 @@ function App() {
 
           {/* 기타 페이지 */}
           <Route path="/cookie" element={<CookiePage />} />
+
+          {/* 새로운 기능 페이지 라우팅 */}
+          <Route path="/calendar" element={<CalendarPage sportMode={sportMode} />} />
+          <Route path="/ticket" element={<TicketPage sportMode={sportMode} />} />
+          <Route path="/community" element={<CommunityPage sportMode={sportMode} />} />
+          <Route path="/teams" element={<TeamPage sportMode={sportMode} />} />
+          <Route path="/teams/:id" element={<TeamDetailPage sportMode={sportMode} />} />
+          
         </Routes>
       </div>
 

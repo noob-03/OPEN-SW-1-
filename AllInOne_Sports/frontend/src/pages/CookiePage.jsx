@@ -28,7 +28,7 @@ function CookiePage() {
                 localStorage.setItem("accessToken", data.accessToken);
                 localStorage.setItem("refreshToken", data.refreshToken);
 
-                navigate("/user");
+                navigate("/main");
             } catch (err) {
                 alert("소셜 로그인 실패");
                 navigate("/login");
