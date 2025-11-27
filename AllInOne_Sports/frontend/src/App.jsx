@@ -10,6 +10,13 @@ import AccountPage from './pages/AccountPage.jsx';
 import CookiePage from './pages/CookiePage.jsx';
 import MessagePage from './pages/MessagePage.jsx';
 
+// 새로 추가된 페이지들
+import CalendarPage from './pages/CalendarPage.jsx';
+import TicketPage from './pages/TicketPage.jsx';
+import TeamPage from './pages/TeamPage.jsx';
+import TeamDetailPage from './pages/TeamDetailPage.jsx';
+import CommunityPage from './pages/CommunityPage.jsx';
+
 function App() {
   const location = useLocation();
   const hideHeader = location.pathname === "/message";
@@ -56,6 +63,14 @@ function App() {
           <Route path="/account" element={token ? <AccountPage /> : <Navigate to="/login" replace />} />
           <Route path="/message" element={token ? <MessagePage /> : <Navigate to="/login" replace />} />
           <Route path="/cookie" element={<CookiePage />} />
+
+          {/* 새로운 기능 페이지 라우팅 */}
+          <Route path="/calendar" element={<CalendarPage sportMode={sportMode} />} />
+          <Route path="/ticket" element={<TicketPage sportMode={sportMode} />} />
+          <Route path="/community" element={<CommunityPage sportMode={sportMode} />} />
+          <Route path="/teams" element={<TeamPage sportMode={sportMode} />} />
+          <Route path="/teams/:id" element={<TeamDetailPage sportMode={sportMode} />} />
+          
         </Routes>
       </div>
 
