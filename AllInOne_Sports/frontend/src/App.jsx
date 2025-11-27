@@ -3,21 +3,25 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
 
+// 페이지 컴포넌트 임포트
 import LoginPage from './pages/LoginPage.jsx';
 import MainPage from './pages/MainPage.jsx';
 import JoinPage from './pages/JoinPage.jsx';
 import AccountPage from './pages/AccountPage.jsx';
 import CookiePage from './pages/CookiePage.jsx';
 import MessagePage from './pages/MessagePage.jsx';
+import CalendarPage from './pages/CalendarPage.jsx'; // [추가] 캘린더 페이지 임포트
 
 function App() {
   const location = useLocation();
   const hideHeader = location.pathname === "/message";
 
   const [token, setToken] = useState(localStorage.getItem('accessToken'));
+  // [중요] sportMode 상태를 App에서 관리하여 자식 페이지들에게 전달
   const [sportMode, setSportMode] = useState('soccer');
 
-  // 🔥 라우트 주소에 따라 width 변경
+  // 🔥 라우트 주소에 따라 background width 변경 로직 (기존 유지)
+  // 로그인/회원가입/루트 경로일 때는 50%, 나머지(메인, 캘린더, 마이페이지 등)는 100%
   const targetWidth =
     location.pathname === "/" ||
     location.pathname === "/login" ||
@@ -51,14 +55,14 @@ function App() {
       }}
     >
 
-      {/* 배경 */}
+      {/* 배경 애니메이션 div (기존 유지) */}
       <div
         style={{
           position: 'fixed',
           top: 0,
           right: 0,
           height: '100%',
-          width: targetWidth,           // 🔥 라우트별 width 적용
+          width: targetWidth,           // 🔥 라우트별 width 적용 (Calendar는 100%가 됨)
           transition:
             'width 1.2s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.5s ease-in-out',
           zIndex: -2
@@ -97,6 +101,7 @@ function App() {
 
       <div className="main-content" style={{ flex: 1 }}>
         <Routes>
+          {/* 기본 루트 */}
           <Route
             path="/"
             element={
@@ -107,11 +112,15 @@ function App() {
               )
             }
           />
+
+          {/* 로그인/회원가입 */}
           <Route
             path="/login"
             element={<LoginPage sportMode={sportMode} />}
           />
           <Route path="/join" element={<JoinPage />} />
+
+          {/* 메인 페이지 (로그인 보호) */}
           <Route
             path="/main"
             element={
@@ -122,6 +131,20 @@ function App() {
               )
             }
           />
+
+          {/* [추가] 캘린더 페이지 (로그인 보호 + sportMode 전달) */}
+          <Route
+            path="/calendar"
+            element={
+              token ? (
+                <CalendarPage sportMode={sportMode} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* 마이페이지 (로그인 보호) */}
           <Route
             path="/account"
             element={
@@ -132,6 +155,8 @@ function App() {
               )
             }
           />
+
+          {/* 쪽지 페이지 (로그인 보호) */}
           <Route
             path="/message"
             element={
@@ -142,6 +167,8 @@ function App() {
               )
             }
           />
+
+          {/* 기타 페이지 */}
           <Route path="/cookie" element={<CookiePage />} />
         </Routes>
       </div>
