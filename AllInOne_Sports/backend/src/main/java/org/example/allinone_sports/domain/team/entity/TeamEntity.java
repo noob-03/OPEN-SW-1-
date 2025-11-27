@@ -1,33 +1,25 @@
 package org.example.allinone_sports.domain.team.entity;
 
-import org.example.allinone_sports.domain.sports.entity.SportEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Getter
-@NoArgsConstructor
 @Entity
-@Table(name = "Team")
+@Table(name = "team")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TeamEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long teamid;
+    private Long teamId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sport_id")
-    private SportEntity sport;
-
+    private Integer sportId; // 1 = KBO, 2 = KLeague
     private String name;
     private String logoUrl;
     private String league;
     private String snsLink;
     private String ticketLink;
     private String teamLink;
-
-    public void setSport(SportEntity sport) {
-        this.sport = sport;
-    }
-
 }

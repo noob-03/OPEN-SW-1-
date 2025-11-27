@@ -7,10 +7,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
 @RestController
@@ -20,41 +16,54 @@ public class TeamController {
 
     private final TeamService teamService;
 
-    // 팀 전체 조회
+    // 전체 팀 목록
     @GetMapping
     public List<TeamEntity> getAllTeams() {
-        return teamService.findAllTeams();
+        return teamService.getAllTeams();
     }
 
+    // 스포츠별 팀 조회
     @GetMapping("/sport/{sportId}")
-    public List<TeamEntity> getTeamsBySport(@PathVariable Long sportId) {
-        return teamService.findBySportId(sportId);
+    public List<TeamEntity> getTeamsBySport(@PathVariable Integer sportId) {
+        return teamService.getTeamsBySport(sportId);
     }
 
+    // teamId 로 상세 조회
+    @GetMapping("/{teamId}")
+    public TeamEntity getTeam(@PathVariable Long teamId) {
+        return teamService.getTeam(teamId);
+    }
 
-    // 팀 로고 이미지 반환 API
-    @GetMapping("/logo/{teamid}")
-    public ResponseEntity<byte[]> getTeamLogo(@PathVariable Long teamid) throws IOException {
-        TeamEntity team = teamService.findById(teamid);
+    // teamId 로 로고 조회
+    @GetMapping("/{teamId}/logo")
+    public String getLogo(@PathVariable Long teamId) {
+        return teamService.getTeamLogo(teamId);
+    }
 
-        if (team == null || team.getLogoUrl() == null) {
-            return ResponseEntity.notFound().build();
-        }
+    // 이름으로 팀 상세 조회
+    @GetMapping("/name/{teamName}")
+    public TeamEntity getTeamByName(@PathVariable String teamName) {
+        return teamService.getTeamByName(teamName);
+    }
 
-        URL url = new URL(team.getLogoUrl());
+    // 이름으로 로고 조회
+    @GetMapping("/name/{teamName}/logo")
+    public String getLogoByName(@PathVariable String teamName) {
+        return teamService.getTeamLogoByName(teamName);
+    }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    @GetMapping("/name/{teamName}/sns")
+    public String getTeamSnsByName(@PathVariable String teamName) {
+        return teamService.getTeamByName(teamName).getSnsLink();
+    }
 
-        try (InputStream is = url.openStream()) {
-            byte[] buffer = new byte[1024];
-            int n;
-            while ((n = is.read(buffer)) != -1) {
-                baos.write(buffer, 0, n);
-            }
-        }
+    @GetMapping("/name/{teamName}/teamlink")
+    public String getTeamLinkByName(@PathVariable String teamName) {
+        return teamService.getTeamByName(teamName).getTeamLink();
+    }
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .body(baos.toByteArray());
+    @GetMapping("/name/{teamName}/ticketlink")
+    public String getTicketLinkByName(@PathVariable String teamName) {
+        return teamService.getTeamByName(teamName).getTicketLink();
     }
 }
