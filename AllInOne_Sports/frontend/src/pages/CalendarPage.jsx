@@ -91,7 +91,8 @@ function CalendarPage({ sportMode }) {
 
                 return (
                     <div key={match.id} className="card border-0 shadow-sm rounded-4 overflow-hidden">
-                        <div className="card-header bg-light border-0 py-2 px-4 fw-bold text-secondary">
+                        {/* 날짜 헤더 폰트 크기 확대: fs-5 클래스 추가 */}
+                        <div className="card-header bg-light border-0 py-2 px-4 fw-bold text-secondary fs-5">
                             {match.date} ({dayOfWeek})
                         </div>
                         <div className="card-body p-4 d-flex align-items-center justify-content-between">
