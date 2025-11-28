@@ -1,9 +1,10 @@
-
 import React, { useState, useMemo, useRef } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon } from 'lucide-react';
+import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { MOCK_COMMUNITY_POSTS, MOCK_TEAMS } from '../../constants';
 
 function CommunityPage({ sportMode }) {
+  const navigate = useNavigate();
   const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
   
   // --- 상태 관리 ---
@@ -142,6 +143,19 @@ function CommunityPage({ sportMode }) {
     const updatedPost = { ...selectedPost, commentsList: updatedCommentsList };
     setSelectedPost(updatedPost);
     setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
+  };
+
+  // 4. 쪽지 보내기 핸들러
+  const handleSendMessage = (author) => {
+    if (author === '나(User)') {
+        alert('자신에게는 쪽지를 보낼 수 없습니다.');
+        return;
+    }
+    // 실제 구현 시: 채팅방 생성 API 호출 후 채팅방 ID와 함께 이동
+    // 여기서는 단순히 메시지 페이지로 이동
+    if (window.confirm(`${author}님에게 쪽지를 보내시겠습니까?`)) {
+        navigate('/message'); 
+    }
   };
 
 
@@ -334,7 +348,17 @@ function CommunityPage({ sportMode }) {
                             <User size={20}/>
                         </div>
                         <div>
-                            <div className="fw-bold text-dark">{selectedPost.author}</div>
+                            <div className="fw-bold text-dark d-flex align-items-center gap-2">
+                                {selectedPost.author}
+                                {/* 쪽지 보내기 버튼 추가 */}
+                                <button 
+                                    className="btn btn-sm btn-light border rounded-circle p-1" 
+                                    title="쪽지 보내기"
+                                    onClick={() => handleSendMessage(selectedPost.author)}
+                                >
+                                    <Mail size={14} />
+                                </button>
+                            </div>
                             <div className="small text-muted">{selectedPost.date} · 조회 {selectedPost.views}</div>
                         </div>
                     </div>
@@ -384,7 +408,17 @@ function CommunityPage({ sportMode }) {
                                 </div>
                                 <div className="flex-grow-1">
                                     <div className="d-flex justify-content-between align-items-start mb-1">
-                                        <span className="fw-bold">{comment.author}</span>
+                                        <span className="fw-bold d-flex align-items-center gap-2">
+                                            {comment.author}
+                                            {/* 댓글 작성자에게도 쪽지 보내기 */}
+                                            <button 
+                                                className="btn btn-sm p-0 text-muted" 
+                                                title="쪽지 보내기"
+                                                onClick={() => handleSendMessage(comment.author)}
+                                            >
+                                                <Mail size={12} />
+                                            </button>
+                                        </span>
                                         <span className="small text-muted">{comment.date}</span>
                                     </div>
                                     <p className="mb-2 text-dark">{comment.text}</p>
