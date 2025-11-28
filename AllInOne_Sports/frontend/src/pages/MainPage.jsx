@@ -99,8 +99,8 @@ function MainPage({ sportMode }) {
     };
 
     const handleAccountManage = () => navigate('/account');
-
     const handleMessagePage = () => navigate('/message');
+    const handleSupport = () => navigate('/support'); // 핸들러 추가
 
     /* 🔹 스타일 오브젝트 */
     const styles = {
@@ -203,14 +203,14 @@ function MainPage({ sportMode }) {
                                     </div>
                                 </div>
                                 <div className="col-6">
-                                    <div style={styles.actionButton}>
+                                    <div style={styles.actionButton} onClick={() => navigate('/teams')}>
                                         <Users className="me-2" size={20} style={{ color: themeColor }} /> 팀 팔로우
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-auto pt-3 border-top">
-                                <div style={styles.actionButton}>
+                                <div style={styles.actionButton} onClick={handleSupport}>
                                     <HelpCircle className="me-2" size={20} /> 고객 센터
                                 </div>
                             </div>
