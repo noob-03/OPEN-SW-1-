@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAccess } from "../util/fetchUtil";
 import { ArrowLeft, Send, Search, MoreHorizontal, Phone, Video, Info } from 'lucide-react';
+
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 // 가짜 대화 목록 데이터
 const MOCK_CONVERSATIONS = [
@@ -28,6 +31,8 @@ function MessagePage() {
   const navigate = useNavigate();
   const [selectedChatId, setSelectedChatId] = useState(1);
   const [inputMessage, setInputMessage] = useState("");
+  const [userInfo, setUserInfo] = useState({ nickname: "", email: "" });
+  const [error, setError] = useState("");
 
   const currentChat = MOCK_CONVERSATIONS.find(c => c.id === selectedChatId) || MOCK_CONVERSATIONS[0];
   const currentMessages = MOCK_MESSAGES[selectedChatId] || [];
@@ -38,6 +43,35 @@ function MessagePage() {
     console.log("Send message:", inputMessage);
     setInputMessage("");
   };
+  useEffect(() => {
+      const accessToken = localStorage.getItem("accessToken");
+
+      if (!accessToken) {
+          navigate('/');
+          return;
+      }
+
+      const fetchUserInfo = async () => {
+          try {
+              const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                  method: 'GET',
+                  credentials: 'include',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+              });
+
+              if (!res.ok) throw new Error("유저 정보 불러오기 실패");
+
+              const data = await res.json();
+              setUserInfo(data);
+          } catch (err) {
+              setError("유저 정보를 불러오지 못했습니다.");
+          }
+      };
+
+      fetchUserInfo();
+  }, []);
 
   return (
     <div className="container-fluid p-0" style={{ height: '100vh', backgroundColor: '#FAFAFA' }}>
@@ -49,7 +83,7 @@ function MessagePage() {
                 <button onClick={() => navigate(-1)} className="btn btn-link p-0 text-dark">
                     <ArrowLeft size={24} />
                 </button>
-                <h5 className="fw-bold m-0">test_user</h5>
+                <h5 className="fw-bold m-0">{userInfo.nickname}</h5>
                 <ChevronRight size={20} />
             </div>
             <MoreHorizontal size={24} />
