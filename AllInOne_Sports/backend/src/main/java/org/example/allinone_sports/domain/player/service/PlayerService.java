@@ -1,12 +1,12 @@
 package org.example.allinone_sports.domain.player.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.allinone_sports.domain.player.entity.PlayerEntity;
 import org.example.allinone_sports.domain.player.repository.PlayerRepository;
 import org.example.allinone_sports.domain.team.entity.TeamEntity;
 import org.example.allinone_sports.domain.team.repository.TeamRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,37 +17,21 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
 
-    /**
-     * 특정 팀 선수 전체 조회
-     */
     public List<PlayerEntity> getPlayersByTeam(Long teamId) {
-        return playerRepository.findByTeamId(teamId);
+        return playerRepository.findByTeam_TeamId(teamId);
     }
 
-    /**
-     * 특정 팀 선수 전체 삭제 (크롤링 재갱신을 위해)
-     */
-    @Transactional
-    public void deletePlayersByTeam(Long teamId) {
-        playerRepository.deleteByTeamId(teamId);
-    }
-
-    /**
-     * 크롤링으로 받은 선수 목록을 팀에 저장
-     */
     @Transactional
     public void savePlayers(Long teamId, List<PlayerEntity> players) {
 
-        // 팀 조회
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 팀이 존재하지 않습니다. teamId=" + teamId));
+                .orElseThrow(() -> new RuntimeException("팀 없음: " + teamId));
 
-        // 기존 선수 삭제
-        playerRepository.deleteByTeamId(teamId);
+        // 팀 기존 선수 삭제 후 새로운 선수 저장 (항상 최신 유지)
+        playerRepository.deleteByTeam_TeamId(teamId);
 
-        // 선수 저장
         for (PlayerEntity p : players) {
-            p.setTeam(team);
+            p.setTeam(team);  // fk 연결
             playerRepository.save(p);
         }
     }
