@@ -124,6 +124,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/post").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/teams/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "players/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.PUT, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/user").hasRole(UserRoleType.USER.name())

@@ -66,4 +66,15 @@ public class TeamController {
     public String getTicketLinkByName(@PathVariable String teamName) {
         return teamService.getTeamByName(teamName).getTicketLink();
     }
+
+    @GetMapping("/name/{teamName}/teamstadium")
+    public String getTeamStadiumByName(@PathVariable String teamName) {
+        return teamService.getTeamByName(teamName).getTeamStadium();
+    }
+
+    @GetMapping("/kleague/records")
+    public List<TeamEntity> getKLeagueRecords() {
+        return teamService.getTeamsBySport(2);   // sportId = 2
+    }
 }
+
