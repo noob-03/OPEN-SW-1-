@@ -51,7 +51,6 @@ export async function fetchWithAccess(url, options = {}) {
     }
 
     if (!response.ok) {
-        alert("fuck");
         throw new Error(`HTTP 오류 : ${response.status}`);
     }
 
