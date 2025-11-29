@@ -8,8 +8,9 @@ import java.util.List;
 @Repository
 public interface PlayerRepository extends JpaRepository<PlayerEntity, Long> {
 
-    List<PlayerEntity> findByTeam_TeamId(Long teamId);
+    List<PlayerEntity> findByTeamId(Long teamId);
 
-    void deleteByTeam_TeamId(Long teamId);
+    void deleteByTeamId(Long teamId);
 }
+
 
