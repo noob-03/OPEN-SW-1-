@@ -16,6 +16,7 @@ import TicketPage from './pages/TicketPage.jsx';
 import TeamPage from './pages/TeamPage.jsx';
 import TeamDetailPage from './pages/TeamDetailPage.jsx';
 import CommunityPage from './pages/CommunityPage.jsx';
+import SupportPage from './pages/SupportPage.jsx'; // Import 추가
 
 function App() {
   const location = useLocation();
@@ -182,7 +183,7 @@ function App() {
           <Route path="/community" element={<CommunityPage sportMode={sportMode} />} />
           <Route path="/teams" element={<TeamPage sportMode={sportMode} />} />
           <Route path="/teams/:id" element={<TeamDetailPage sportMode={sportMode} />} />
-          
+          <Route path="/support" element={<SupportPage />} /> {/* 라우팅 추가 */}
         </Routes>
       </div>
 

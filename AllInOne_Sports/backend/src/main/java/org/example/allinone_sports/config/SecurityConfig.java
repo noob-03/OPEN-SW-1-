@@ -132,6 +132,12 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.PUT, "/api/post/**").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.PUT, "/api/post/**").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.POST, "api/v1/chat/rooms").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.GET, "api/v1/chat/rooms").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.GET, "/api/v1/chat/rooms/*/history").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.GET, "ws/chat").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.PUT, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.DELETE, "/user").hasRole(UserRoleType.USER.name())
