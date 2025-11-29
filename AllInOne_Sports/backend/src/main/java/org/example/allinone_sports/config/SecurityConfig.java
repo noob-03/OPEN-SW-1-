@@ -122,6 +122,7 @@ public class SecurityConfig {
                         .requestMatchers("/jwt/exchange", "/jwt/refresh", "/login?error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/exist", "/user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/post").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.POST, "/api/post/*/like").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요

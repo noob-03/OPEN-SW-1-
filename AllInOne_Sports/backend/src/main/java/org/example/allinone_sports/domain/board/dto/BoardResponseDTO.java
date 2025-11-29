@@ -1,11 +1,16 @@
 package org.example.allinone_sports.domain.board.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.allinone_sports.domain.board.entity.BoardEntity;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class BoardResponseDTO {
     private Long id;
@@ -19,9 +24,12 @@ public class BoardResponseDTO {
     private Long price;
     private String sportsType;
     private String gameDate;
-    private String seat;
+    private String teamId;
     private Long viewCount;
+    private Long likeCount;
     private String status;
+    private List<CommentResponseDTO> comments;
+    private boolean likedByCurrentUser;
 
     public BoardResponseDTO(BoardEntity entity) {
         this.id = entity.getId();
@@ -35,8 +43,13 @@ public class BoardResponseDTO {
         this.price = entity.getPrice();
         this.sportsType = entity.getSportsType();
         this.gameDate = entity.getGameDate();
-        this.seat = entity.getSeat();
+        this.teamId = entity.getTeamId();
         this.viewCount = entity.getViewCount();
+        this.likeCount = entity.getLikeCount();
         this.status = entity.getStatus();
+        this.comments = entity.getComments().stream()
+                .map(CommentResponseDTO::new)
+                .collect(Collectors.toList());
+        this.likedByCurrentUser = false;
     }
 }

@@ -1,18 +1,38 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_COMMUNITY_POSTS, MOCK_TEAMS } from '../../constants';
+import { fetchWithAccess } from '../util/fetchUtil';
+
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL || '';
+
+const MOCK_TEAMS = [
+  { id: '1', name: '두산 베어스', sport: 'baseball', league: 'KBO' },
+  { id: '2', name: 'LG 트윈스', sport: 'baseball', league: 'KBO' },
+  { id: '3', name: 'KIA 타이거즈', sport: 'baseball', league: 'KBO' },
+  { id: '4', name: '삼성 라이온즈', sport: 'baseball', league: 'KBO' },
+  { id: '5', name: '롯데 자이언츠', sport: 'baseball', league: 'KBO' },
+  { id: '6', name: '한화 이글스', sport: 'baseball', league: 'KBO' },
+  { id: '7', name: 'SSG 랜더스', sport: 'baseball', league: 'KBO' },
+  { id: '8', name: 'KT 위즈', sport: 'baseball', league: 'KBO' },
+  { id: '9', name: 'NC 다이노스', sport: 'baseball', league: 'KBO' },
+  { id: '10', name: '키움 히어로즈', sport: 'baseball', league: 'KBO' },
+  { id: '11', name: '울산 HD', sport: 'soccer', league: 'K1' },
+  { id: '12', name: '포항 스틸러스', sport: 'soccer', league: 'K1' },
+  { id: '13', name: 'FC 서울', sport: 'soccer', league: 'K1' },
+  { id: '14', name: '전북 현대', sport: 'soccer', league: 'K1' },
+  { id: '15', name: '수원 삼성', sport: 'soccer', league: 'K2' },
+];
 
 function CommunityPage({ sportMode }) {
   const navigate = useNavigate();
   const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
   
-  // --- 상태 관리 ---
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'write', 'detail'
-  const [posts, setPosts] = useState(MOCK_COMMUNITY_POSTS); // 로컬 상태로 데이터 관리 (글쓰기 반영 위해)
-  const [selectedPost, setSelectedPost] = useState(null); // 상세 볼 글
+  const [viewMode, setViewMode] = useState('list');
+  const [posts, setPosts] = useState([]); 
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 필터 상태 (List Mode)
   const [activeTab, setActiveTab] = useState('free'); 
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState('latest');
@@ -20,9 +40,8 @@ function CommunityPage({ sportMode }) {
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showSellingOnly, setShowSellingOnly] = useState(false);
 
-  // 글쓰기 폼 상태 (Write Mode)
   const [writeForm, setWriteForm] = useState({
-    type: 'free', // free, ticket, companion
+    type: 'free', 
     title: '',
     content: '',
     teamId: '',
@@ -30,13 +49,10 @@ function CommunityPage({ sportMode }) {
     file: null
   });
   const fileInputRef = useRef(null);
-
-  // 댓글 입력 상태 (Detail Mode)
   const [commentInput, setCommentInput] = useState('');
 
-  // --- Helper Functions ---
   const getTeamName = (id) => {
-    const team = MOCK_TEAMS.find(t => t.id === id);
+    const team = MOCK_TEAMS.find(t => t.id === String(id));
     return team ? team.name : '알 수 없음';
   };
 
@@ -47,9 +63,195 @@ function CommunityPage({ sportMode }) {
     return MOCK_TEAMS.filter(t => t.league === selectedLeague);
   }, [sportMode, selectedLeague]);
 
-  // --- Handlers ---
+  const formatDate = (dateString) => {
+      if (!dateString) return '';
+      return new Date(dateString).toLocaleDateString();
+  };
 
-  // 1. 글쓰기 관련
+  useEffect(() => {
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!accessToken) {
+            navigate('/');
+            return;
+        }
+
+        const fetchUserInfo = async () => {
+            try {
+                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!res.ok) throw new Error("유저 정보 불러오기 실패");
+
+                const data = await res.json();
+                setCurrentUser({
+                    ...data,
+                    userId: data.id || data.userId,
+                    nickname: data.nickname || data.name
+                });
+            } catch (err) {
+                console.error(err);
+                alert("유저 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
+                navigate('/');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserInfo();
+    }, [navigate]);
+
+  useEffect(() => {
+      if (!isLoading && currentUser) {
+          fetchPosts();
+      }
+  }, [sportMode, activeTab, isLoading, currentUser]);
+
+  const fetchPosts = async () => {
+      try {
+          let apiPostType = 'ALL';
+          if (activeTab === 'ticket') apiPostType = 'TICKET';
+          else if (activeTab === 'companion') apiPostType = 'COMPANION';
+          else if (activeTab === 'free') apiPostType = 'FREE';
+
+          if (activeTab === 'notice') apiPostType = 'FREE';
+
+          const queryParams = new URLSearchParams({
+              sportsType: sportMode,
+              postType: apiPostType
+          });
+
+          const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/posts?${queryParams.toString()}`, {
+              method: 'GET',
+              credentials: 'include'
+          });
+          
+          if (!response.ok) throw new Error('데이터 로딩 실패');
+          
+          const data = await response.json();
+          
+          const mappedPosts = data.map(post => ({
+              id: post.id,
+              userId: post.userId,
+              type: post.postType.toLowerCase(),
+              title: post.title,
+              author: post.author,
+              date: formatDate(post.modifiedAt),
+              views: post.viewCount,
+              likes: post.likeCount || 0,
+              comments: post.comments ? post.comments.length : 0,
+              content: post.contents,
+              commentsList: post.comments.map(c => ({
+                  id: c.id,
+                  userId: c.userId,
+                  author: c.author,
+                  text: c.content,
+                  date: formatDate(c.createdAt),
+                  likes: 0
+              })),
+              teamId: post.teamId, 
+              price: post.price,
+              status: post.status === 'ONGOING' ? 'selling' : 'soldout',
+              isPinned: false, 
+              hasFile: false 
+          }));
+
+          setPosts(mappedPosts);
+      } catch (error) {
+          console.error("게시글 로딩 에러:", error);
+      }
+  };
+
+  const createChatRoom = async (roomName) => {
+    try {
+        const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/v1/chat/rooms`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: roomName })
+        });
+        
+        if (!res.ok) {
+            if (res.status === 401) {
+                localStorage.removeItem("accessToken");
+                navigate('/'); 
+                return;
+            }
+            throw new Error("채팅방 생성 실패");
+        }
+        alert(`${roomName}님과의 채팅방이 생성되었습니다.`);
+        navigate('/message'); 
+
+    } catch (err) {
+        console.error("Error creating chat room:", err);
+        alert(`채팅방 생성 중 오류 발생: ${err.message}`);
+    }
+  };
+
+  const handleSendMessage = async (author) => {
+    if (!currentUser) return;
+    
+    if (author === currentUser.nickname) {
+        alert('자신에게는 쪽지를 보낼 수 없습니다.');
+        return;
+    }
+    
+    if (window.confirm(`${author}님에게 쪽지를 보내시겠습니까?\n(1:1 채팅방이 생성됩니다)`)) {
+        await createChatRoom(author);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!selectedPost) return;
+    if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
+
+    try {
+        const response = await fetchWithAccess(`/api/post/${selectedPost.id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            alert("게시글이 삭제되었습니다.");
+            setViewMode('list');
+            fetchPosts();
+        } else {
+            alert("삭제 권한이 없거나 오류가 발생했습니다.");
+        }
+    } catch (error) {
+        console.error("삭제 실패:", error);
+        alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
+
+    try {
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/comment/${commentId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const updatedCommentsList = selectedPost.commentsList.filter(c => c.id !== commentId);
+            setSelectedPost({
+                ...selectedPost,
+                commentsList: updatedCommentsList,
+                comments: updatedCommentsList.length
+            });
+            setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, comments: updatedCommentsList.length } : p));
+        } else {
+            alert("삭제 권한이 없거나 오류가 발생했습니다.");
+        }
+    } catch (error) {
+        console.error("댓글 삭제 실패:", error);
+    }
+  };
+
   const handleWriteClick = () => {
     setWriteForm({ type: activeTab === 'notice' ? 'free' : activeTab, title: '', content: '', teamId: '', price: '', file: null });
     setViewMode('write');
@@ -61,7 +263,7 @@ function CommunityPage({ sportMode }) {
     }
   };
 
-  const handleSubmitPost = () => {
+  const handleSubmitPost = async () => {
     if (!writeForm.title.trim() || !writeForm.content.trim()) {
       alert('제목과 내용을 입력해주세요.');
       return;
@@ -71,69 +273,143 @@ function CommunityPage({ sportMode }) {
         return;
     }
 
-    const newPost = {
-      id: Date.now(), // 임시 ID
-      type: writeForm.type,
-      title: writeForm.title,
-      author: '나(User)', // 로그인 연동 시 실제 유저명
-      date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
-      views: 0,
-      likes: 0,
-      comments: 0,
-      content: writeForm.content,
-      commentsList: [],
-      // 티켓 전용
-      teamId: writeForm.teamId,
-      price: Number(writeForm.price),
-      status: 'selling',
-      isPinned: false,
-      hasFile: !!writeForm.file
-    };
+    try {
+        const payload = {
+            title: writeForm.title,
+            author: currentUser.nickname,
+            userId: currentUser.id,
+            contents: writeForm.content,
+            postType: writeForm.type.toUpperCase(),
+            sportsType: sportMode,
+            price: writeForm.price ? parseInt(writeForm.price) : 0,
+            teamId: writeForm.teamId, 
+            status: 'ONGOING',
+            gameDate: new Date().toISOString()
+        };
 
-    setPosts([newPost, ...posts]);
-    setViewMode('list');
-    alert('게시글이 등록되었습니다.');
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert('게시글이 등록되었습니다.');
+            await fetchPosts();
+            setViewMode('list');
+        } else {
+            alert('등록 실패');
+        }
+    } catch (error) {
+        console.error("글쓰기 에러:", error);
+        alert("오류가 발생했습니다.");
+    }
   };
 
-  // 2. 상세 보기 관련
-  const handlePostClick = (post) => {
-    // 조회수 증가 시뮬레이션
-    const updatedPosts = posts.map(p => p.id === post.id ? { ...p, views: p.views + 1 } : p);
-    setPosts(updatedPosts);
-    setSelectedPost({ ...post, views: post.views + 1 }); // 업데이트된 상태로 설정
-    setViewMode('detail');
+  const handlePostClick = async (post) => {
+    try {
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${post.id}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('상세 조회 실패');
+        
+        const data = await response.json();
+        
+        const mappedDetail = {
+            ...post,
+            userId: data.userId,
+            views: data.viewCount,
+            likes: data.likeCount || 0,
+            content: data.contents,
+            comments: data.comments ? data.comments.length : 0,
+            commentsList: data.comments.map(c => ({
+                id: c.id,
+                userId: c.userId,
+                author: c.author,
+                text: c.content,
+                date: formatDate(c.createdAt),
+                likes: 0
+            })),
+            likedByCurrentUser: data.likedByCurrentUser
+        };
+
+        setPosts(prev => prev.map(p => p.id === post.id ? { ...p, views: data.viewCount } : p));
+        setSelectedPost(mappedDetail);
+        setViewMode('detail');
+    } catch (error) {
+        console.error("상세보기 에러:", error);
+    }
   };
 
-  const handleLikePost = () => {
+  const handleLikePost = async () => {
     if (!selectedPost) return;
-    // 좋아요 토글 시뮬레이션 (여기선 단순 증가만)
-    const updatedPost = { ...selectedPost, likes: selectedPost.likes + 1 };
-    setSelectedPost(updatedPost);
-    setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
+    try {
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/like`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}) 
+        });
+
+        if (response.ok) {
+            const isLiked = !selectedPost.likedByCurrentUser;
+            const newCount = isLiked ? selectedPost.likes + 1 : selectedPost.likes - 1;
+            
+            const updatedPost = { 
+                ...selectedPost, 
+                likes: newCount,
+                likedByCurrentUser: isLiked
+            };
+            
+            setSelectedPost(updatedPost);
+            setPosts(posts.map(p => p.id === updatedPost.id ? { ...p, likes: newCount } : p));
+        }
+    } catch (error) {
+        console.error("좋아요 에러:", error);
+    }
   };
 
-  // 3. 댓글 관련
-  const handleSubmitComment = (e) => {
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!commentInput.trim()) return;
 
-    const newComment = {
-      id: Date.now(),
-      author: '나(User)',
-      text: commentInput,
-      date: '방금 전',
-      likes: 0
-    };
+    try {
+        const payload = {
+            content: commentInput,
+        };
 
-    const updatedPost = {
-      ...selectedPost,
-      commentsList: [...(selectedPost.commentsList || []), newComment],
-      comments: (selectedPost.comments || 0) + 1
-    };
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/comment`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-    setSelectedPost(updatedPost);
-    setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
-    setCommentInput('');
+        if (response.ok) {
+            const newCommentData = await response.json();
+            const newComment = {
+                id: newCommentData.id,
+                userId: newCommentData.userId,
+                author: newCommentData.author,
+                text: newCommentData.content,
+                date: formatDate(newCommentData.createdAt),
+                likes: 0
+            };
+
+            const updatedPost = {
+                ...selectedPost,
+                commentsList: [...(selectedPost.commentsList || []), newComment],
+                comments: (selectedPost.comments || 0) + 1
+            };
+
+            setSelectedPost(updatedPost);
+            setPosts(posts.map(p => p.id === updatedPost.id ? { ...p, comments: updatedPost.comments } : p));
+            setCommentInput('');
+        }
+    } catch (error) {
+        console.error("댓글 작성 에러:", error);
+    }
   };
 
   const handleLikeComment = (commentId) => {
@@ -142,33 +418,15 @@ function CommunityPage({ sportMode }) {
     );
     const updatedPost = { ...selectedPost, commentsList: updatedCommentsList };
     setSelectedPost(updatedPost);
-    setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
   };
 
-  // 4. 쪽지 보내기 핸들러
-  const handleSendMessage = (author) => {
-    if (author === '나(User)') {
-        alert('자신에게는 쪽지를 보낼 수 없습니다.');
-        return;
-    }
-    // 실제 구현 시: 채팅방 생성 API 호출 후 채팅방 ID와 함께 이동
-    // 여기서는 단순히 메시지 페이지로 이동
-    if (window.confirm(`${author}님에게 쪽지를 보내시겠습니까?`)) {
-        navigate('/message'); 
-    }
-  };
-
-
-  // --- Filtering Logic (List Mode) ---
   const getFilteredPosts = () => {
     let filtered = posts;
 
-    // 탭 필터
-    if (activeTab !== 'all') { // 'all' 탭이 없다면 notice 제외한 탭별 필터링
+    if (activeTab !== 'all') { 
         filtered = filtered.filter(post => post.type === activeTab || (activeTab === 'free' && post.type === 'notice'));
     }
 
-    // 검색
     if (searchText) {
       filtered = filtered.filter(post => 
         post.title.toLowerCase().includes(searchText.toLowerCase()) || 
@@ -176,7 +434,6 @@ function CommunityPage({ sportMode }) {
       );
     }
 
-    // 티켓 필터
     if (activeTab === 'ticket') {
       if (selectedTeam !== 'all') {
         filtered = filtered.filter(post => post.teamId === selectedTeam);
@@ -189,16 +446,15 @@ function CommunityPage({ sportMode }) {
       }
     }
 
-    // 정렬
     filtered.sort((a, b) => {
-      // 공지사항 최우선
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
 
       if (sortBy === 'likes') return b.likes - a.likes;
       if (sortBy === 'views') return b.views - a.views;
       if (sortBy === 'comments') return (b.comments || 0) - (a.comments || 0);
-      return b.date.localeCompare(a.date);
+      
+      return new Date(b.date) - new Date(a.date);
     });
 
     return filtered;
@@ -206,10 +462,16 @@ function CommunityPage({ sportMode }) {
 
   const displayedPosts = getFilteredPosts();
 
+  if (isLoading) {
+      return (
+          <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+              <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+              </div>
+          </div>
+      );
+  }
 
-  // --- RENDERERS ---
-
-  // 1. 글쓰기 화면
   if (viewMode === 'write') {
     return (
       <div className="container" style={{ paddingTop: '120px', paddingBottom: '80px', maxWidth: '800px' }}>
@@ -221,7 +483,6 @@ function CommunityPage({ sportMode }) {
         </div>
 
         <div className="card border-0 shadow-sm rounded-4 p-4 bg-white">
-          {/* 게시판 선택 */}
           <div className="mb-4">
             <label className="form-label fw-bold">게시판 선택</label>
             <div className="d-flex gap-2">
@@ -237,7 +498,6 @@ function CommunityPage({ sportMode }) {
             </div>
           </div>
 
-          {/* 티켓 정보 (티켓 선택 시에만 표시) */}
           {writeForm.type === 'ticket' && (
             <div className="row g-3 mb-4 p-3 bg-light rounded-3">
               <div className="col-md-6">
@@ -269,7 +529,6 @@ function CommunityPage({ sportMode }) {
             </div>
           )}
 
-          {/* 제목 */}
           <div className="mb-3">
             <input 
               type="text" 
@@ -281,7 +540,6 @@ function CommunityPage({ sportMode }) {
             />
           </div>
 
-          {/* 파일 첨부 */}
           <div className="mb-3">
             <button 
                 className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
@@ -298,7 +556,6 @@ function CommunityPage({ sportMode }) {
             />
           </div>
 
-          {/* 내용 */}
           <div className="mb-4">
             <textarea 
               className="form-control border-0 px-0" 
@@ -307,10 +564,11 @@ function CommunityPage({ sportMode }) {
               value={writeForm.content}
               onChange={(e) => setWriteForm({ ...writeForm, content: e.target.value })}
               style={{ boxShadow: 'none', resize: 'none' }}
+              autoComplete="off"
+              spellCheck="false"
             ></textarea>
           </div>
 
-          {/* 버튼 */}
           <div className="d-flex justify-content-end gap-2">
             <button className="btn btn-light px-4" onClick={() => setViewMode('list')}>취소</button>
             <button 
@@ -326,7 +584,6 @@ function CommunityPage({ sportMode }) {
     );
   }
 
-  // 2. 상세 보기 화면
   if (viewMode === 'detail' && selectedPost) {
     return (
       <div className="container" style={{ paddingTop: '120px', paddingBottom: '80px', maxWidth: '900px' }}>
@@ -339,9 +596,18 @@ function CommunityPage({ sportMode }) {
 
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
           <div className="card-body p-4 p-lg-5">
-            {/* 헤더 */}
             <div className="mb-4 pb-4 border-bottom">
-                <h2 className="fw-bold mb-3">{selectedPost.title}</h2>
+                <div className="d-flex justify-content-between">
+                    <h2 className="fw-bold mb-3">{selectedPost.title}</h2>
+                    {currentUser && selectedPost.userId === currentUser.userId && (
+                        <button 
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={handleDeletePost}
+                        >
+                            <Trash2 size={16} /> 삭제
+                        </button>
+                    )}
+                </div>
                 <div className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2">
                         <div className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style={{width: '40px', height: '40px'}}>
@@ -350,7 +616,6 @@ function CommunityPage({ sportMode }) {
                         <div>
                             <div className="fw-bold text-dark d-flex align-items-center gap-2">
                                 {selectedPost.author}
-                                {/* 쪽지 보내기 버튼 추가 */}
                                 <button 
                                     className="btn btn-sm btn-light border rounded-circle p-1" 
                                     title="쪽지 보내기"
@@ -362,7 +627,6 @@ function CommunityPage({ sportMode }) {
                             <div className="small text-muted">{selectedPost.date} · 조회 {selectedPost.views}</div>
                         </div>
                     </div>
-                    {/* 티켓 정보 표시 */}
                     {selectedPost.type === 'ticket' && (
                         <div className="text-end">
                             <span className={`badge mb-1 ${selectedPost.status === 'selling' ? 'bg-success' : 'bg-secondary'}`}>
@@ -376,29 +640,25 @@ function CommunityPage({ sportMode }) {
                 </div>
             </div>
 
-            {/* 본문 */}
             <div className="mb-5" style={{ minHeight: '200px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>
                 {selectedPost.content}
             </div>
 
-            {/* 좋아요 버튼 */}
             <div className="text-center mb-5">
                 <button 
-                    className="btn btn-outline-danger rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto hover-scale"
+                    className={`btn btn-outline-danger rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto hover-scale ${selectedPost.likedByCurrentUser ? 'active bg-danger text-white' : ''}`}
                     onClick={handleLikePost}
                 >
-                    <Heart className={selectedPost.likes > 0 ? "fill-danger" : ""} size={20}/> 
+                    <Heart className={selectedPost.likes > 0 || selectedPost.likedByCurrentUser ? "fill-danger" : ""} size={20}/> 
                     <span className="fw-bold">{selectedPost.likes}</span>
                 </button>
             </div>
 
-            {/* 댓글 영역 */}
             <div className="bg-light rounded-4 p-4">
                 <h5 className="fw-bold mb-4 d-flex align-items-center gap-2">
                     댓글 <span className="text-primary">{selectedPost.comments}</span>
                 </h5>
 
-                {/* 댓글 리스트 */}
                 <div className="d-flex flex-column gap-4 mb-4">
                     {selectedPost.commentsList && selectedPost.commentsList.length > 0 ? (
                         selectedPost.commentsList.map(comment => (
@@ -410,7 +670,6 @@ function CommunityPage({ sportMode }) {
                                     <div className="d-flex justify-content-between align-items-start mb-1">
                                         <span className="fw-bold d-flex align-items-center gap-2">
                                             {comment.author}
-                                            {/* 댓글 작성자에게도 쪽지 보내기 */}
                                             <button 
                                                 className="btn btn-sm p-0 text-muted" 
                                                 title="쪽지 보내기"
@@ -419,7 +678,17 @@ function CommunityPage({ sportMode }) {
                                                 <Mail size={12} />
                                             </button>
                                         </span>
-                                        <span className="small text-muted">{comment.date}</span>
+                                        <div className="d-flex gap-2 align-items-center">
+                                            <span className="small text-muted">{comment.date}</span>
+                                            {currentUser && comment.userId === currentUser.userId && (
+                                                <button 
+                                                    className="btn btn-link text-muted p-0"
+                                                    onClick={() => handleDeleteComment(comment.id)}
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="mb-2 text-dark">{comment.text}</p>
                                     <button 
@@ -436,7 +705,6 @@ function CommunityPage({ sportMode }) {
                     )}
                 </div>
 
-                {/* 댓글 입력 */}
                 <form onSubmit={handleSubmitComment} className="position-relative">
                     <textarea 
                         className="form-control pe-5" 
@@ -444,7 +712,9 @@ function CommunityPage({ sportMode }) {
                         placeholder="댓글을 입력하세요..."
                         style={{ resize: 'none', borderRadius: '1rem' }}
                         value={commentInput}
-                        onChange={(e) => setCommentInput(e.target.value)}
+                        onChange={(e) => setCommentInput(e.target ? e.target.value : '')}
+                        autoComplete="off"
+                        spellCheck="false"
                     ></textarea>
                     <button 
                         type="submit" 
@@ -462,18 +732,15 @@ function CommunityPage({ sportMode }) {
     );
   }
 
-  // 3. 목록 화면 (Default)
   return (
     <div className="container" style={{ paddingTop: '120px', paddingBottom: '80px' }}>
       
-      {/* 헤더 섹션 */}
       <div className="d-flex align-items-center gap-3 mb-4">
         <h2 className="fw-bold m-0" style={{ color: themeColor }}>
             {sportMode === 'soccer' ? '축구 커뮤니티' : '야구 커뮤니티'}
         </h2>
       </div>
 
-      {/* 탭 네비게이션 */}
       <div className="d-flex gap-2 mb-4 bg-light p-1 rounded-3 d-inline-flex">
         {[
             { id: 'free', label: '통합 게시판', icon: MessageSquare },
@@ -492,7 +759,6 @@ function CommunityPage({ sportMode }) {
         ))}
       </div>
 
-      {/* 컨트롤 바 */}
       <div className="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
         <div className="row g-3 align-items-center">
             <div className="col-lg-5 d-flex flex-column flex-md-row gap-2">
@@ -564,11 +830,9 @@ function CommunityPage({ sportMode }) {
         </div>
       </div>
 
-      {/* 게시글 리스트 */}
       <div className="d-flex flex-column gap-3">
         {displayedPosts.length > 0 ? (
             displayedPosts.map(post => {
-                // 티켓 게시글 디자인
                 if (post.type === 'ticket') {
                     return (
                         <div 
@@ -604,7 +868,6 @@ function CommunityPage({ sportMode }) {
                     );
                 }
 
-                // 일반/공지 게시글 디자인
                 return (
                     <div 
                         key={post.id} 
@@ -648,7 +911,6 @@ function CommunityPage({ sportMode }) {
         )}
       </div>
 
-      {/* 글쓰기 플로팅 버튼 */}
       <div className="position-fixed bottom-0 end-0 m-5" style={{zIndex: 100}}>
         <button 
             className="btn btn-lg text-white rounded-pill shadow-lg px-4 py-3 fw-bold d-flex align-items-center gap-2 hover-scale"

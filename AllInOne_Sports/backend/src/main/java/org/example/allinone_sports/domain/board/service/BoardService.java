@@ -1,7 +1,7 @@
-
 package org.example.allinone_sports.domain.board.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.allinone_sports.domain.board.dto.BoardRequestsDTO;
 import org.example.allinone_sports.domain.board.dto.BoardResponseDTO;
@@ -17,10 +17,21 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
 
-    // 게시글 보기
+    // 게시글 보기 (필터링 적용)
     @Transactional(readOnly = true)
-    public List<BoardResponseDTO> getPosts() { // BoardRepository에서 수정일시 기준 내림차순으로 가져옴
-        return boardRepository.findAllByOrderByModifiedAtDesc().stream().map(BoardResponseDTO::new).toList();
+    public List<BoardResponseDTO> getPosts(String sportsType, String postType) {
+        List<BoardEntity> boards;
+
+        // postType이 'ALL'이거나 'free'(통합)인 경우 해당 종목 전체 조회
+        // (주의: 기획 의도에 따라 'free'가 자유게시판만 의미한다면 아래 else 로직을 타야 함)
+        if ("ALL".equalsIgnoreCase(postType)) {
+            boards = boardRepository.findAllBySportsTypeOrderByModifiedAtDesc(sportsType);
+        } else {
+            // 특정 타입(TICKET, COMPANION 등)만 조회
+            boards = boardRepository.findAllBySportsTypeAndPostTypeOrderByModifiedAtDesc(sportsType, postType);
+        }
+
+        return boards.stream().map(BoardResponseDTO::new).collect(Collectors.toList());
     }
 
     // 게시글 작성
