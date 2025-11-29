@@ -6,6 +6,7 @@ import org.example.allinone_sports.domain.team.entity.TeamEntity;
 import org.example.allinone_sports.domain.user.entity.UserEntity;
 
 @Entity
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

@@ -53,9 +53,14 @@ public class FollowService {
     // [수정] userId를 String으로 변경
     @Transactional(readOnly = true)
     public List<TeamEntity> getMyFollowTeams(String userId) {
+        // [디버깅용 로그 추가] 서비스가 실행되는지 확인하는 감시 카메라
+        System.out.println("✅ [Service] getMyFollowTeams 진입! 사용자: " + userId);
         // [수정] 마찬가지로 정지되지 않은 유저만 조회 가능
         UserEntity user = userRepository.findByUsernameAndIsLock(userId, false)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다 (ID 없음 또는 정지된 계정): " + userId));
+        System.out.printf("findByUser print" + followRepository.findByUser(user).stream()
+                .toList().toString());
+        System.out.println("✅ [Service1] getMyFollowTeams 진입! 사용자: " + userId);
 
         // Follow 테이블에서 내가 팔로우한 내역을 찾고 -> 거기서 Team 정보만 꺼냄
         return followRepository.findByUser(user).stream()

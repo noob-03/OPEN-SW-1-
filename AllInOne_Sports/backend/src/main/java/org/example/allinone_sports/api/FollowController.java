@@ -2,11 +2,13 @@ package org.example.allinone_sports.api;
 
 import lombok.RequiredArgsConstructor;
 import org.example.allinone_sports.domain.follow.service.FollowService;
+import org.example.allinone_sports.domain.team.dto.TeamDto;
 import org.example.allinone_sports.domain.team.entity.TeamEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.HttpStatus;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/follow")
@@ -16,26 +18,33 @@ public class FollowController {
 
     private final FollowService followService;
 
-    // 1. 팔로우 버튼 클릭 시 호출
+    // 1. 팔로우 토글
     @PostMapping("/{teamId}")
     public ResponseEntity<String> toggleFollow(
             @PathVariable Long teamId,
-            @RequestParam String userId // [확인] String이어야 함
+            @RequestParam("userId") String userId
     ) {
-        // 디버깅용 로그
-        System.out.println("👉 팔로우 요청 도착! ID: " + userId);
+        System.out.println("👉 [POST] 팔로우 요청 도착! ID: " + userId);
         String result = followService.toggleFollow(userId, teamId);
         return ResponseEntity.ok(result);
     }
 
-    // 2. 내 팔로우 목록 가져오기 (페이지 로딩 시 호출)
-    // [중요] 여기가 Long이면 400 에러가 납니다! String으로 꼭 바꿔주세요.
+    // 2. 내 팔로우 목록 조회
     @GetMapping("/my")
-    public ResponseEntity<List<TeamEntity>> getMyTeams(@RequestParam String userId) { // [확인] String이어야 함
-        // 디버깅용 로그
-        System.out.println("👉 목록 조회 요청 도착! ID: " + userId);
+    public ResponseEntity<List<TeamDto>> getMyTeams(@RequestParam(value = "userId", required = false) String userId) {
+    //public List<TeamEntity> getMyTeams(@RequestParam(value = "userId", required = false) String userId) {
+        System.out.println("👉 [GET] 목록 조회 요청 도착! ID: " + userId);
 
         List<TeamEntity> myTeams = followService.getMyFollowTeams(userId);
-        return ResponseEntity.ok(myTeams);
+
+        // [핵심] Entity -> DTO 변환
+        // DB 객체를 그대로 주지 않고, 껍데기만 갈아끼워서 줍니다. (JSON 변환 오류 해결)
+        List<TeamDto> myTeamDTOs = myTeams.stream()
+                .map(TeamDto::fromEntity)
+                .collect(Collectors.toList());
+
+        System.out.println("👉 조회된 팀 개수: " + myTeamDTOs.size());
+        return new ResponseEntity<>(myTeamDTOs, HttpStatus.OK);
+        //return myTeams;
     }
 }
