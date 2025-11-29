@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
+@ToString
 @Table(name = "team")
 @Getter @Setter
 @NoArgsConstructor
