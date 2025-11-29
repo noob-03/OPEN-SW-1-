@@ -6,7 +6,7 @@ import org.example.allinone_sports.domain.follow.repository.FollowRepository;
 import org.example.allinone_sports.domain.team.entity.TeamEntity;
 import org.example.allinone_sports.domain.team.repository.TeamRepository;
 import org.example.allinone_sports.domain.user.entity.UserEntity;
-import org.example.allinone_sports.domain.user.repository.UserRepository; // 유저 레포지토리 경로 확인
+import org.example.allinone_sports.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,14 +20,18 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final TeamRepository teamRepository;
-    private final UserRepository userRepository; // 유저 정보를 가져오기 위해 필요
+    private final UserRepository userRepository;
 
     // 팔로우 토글 기능 (했다가 안했다가)
-    public String toggleFollow(Long userId, Long teamId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+    // [수정] userId를 String으로 변경 (로그인 아이디 "sang" 등을 받음)
+    public String toggleFollow(String userId, Long teamId) {
+
+        // [수정] findByUsernameAndIsLock 사용 (정지된 유저는 팔로우 불가)
+        UserEntity user = userRepository.findByUsernameAndIsLock(userId, false)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다 (ID 없음 또는 정지된 계정): " + userId));
+
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다. ID: " + teamId));
 
         // 이미 팔로우 중이면 -> 취소(삭제)
         if (followRepository.existsByUserAndTeam(user, team)) {
@@ -46,10 +50,12 @@ public class FollowService {
     }
 
     // 내 팔로우 목록 가져오기
+    // [수정] userId를 String으로 변경
     @Transactional(readOnly = true)
-    public List<TeamEntity> getMyFollowTeams(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 없음"));
+    public List<TeamEntity> getMyFollowTeams(String userId) {
+        // [수정] 마찬가지로 정지되지 않은 유저만 조회 가능
+        UserEntity user = userRepository.findByUsernameAndIsLock(userId, false)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 유저입니다 (ID 없음 또는 정지된 계정): " + userId));
 
         // Follow 테이블에서 내가 팔로우한 내역을 찾고 -> 거기서 Team 정보만 꺼냄
         return followRepository.findByUser(user).stream()

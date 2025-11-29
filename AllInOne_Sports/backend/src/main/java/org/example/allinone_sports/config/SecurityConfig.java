@@ -74,7 +74,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // 프론트엔드 개발 환경(Vite: 5173, CRA: 3000) 모두 허용하도록 추가
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -124,6 +125,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/post").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
+
+                        // [추가됨] 팔로우 관련 API는 토큰 없이도 접근 가능하게 설정 (Controller에서 userId 파라미터로 처리하므로)
+                        .requestMatchers("/api/follow/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.PUT, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/user").hasRole(UserRoleType.USER.name())
