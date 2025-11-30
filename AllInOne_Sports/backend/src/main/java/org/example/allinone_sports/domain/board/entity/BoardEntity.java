@@ -56,7 +56,6 @@ public class BoardEntity extends TimeStampedEntity {
     @Column(name = "status")
     private String status; // ONGOING, COMPLETED
 
-    // 댓글 관계 (게시글 삭제 시 댓글 자동 삭제)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<CommentEntity> comments = new ArrayList<>();
