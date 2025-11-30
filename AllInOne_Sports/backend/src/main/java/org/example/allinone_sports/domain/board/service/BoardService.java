@@ -5,9 +5,13 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.allinone_sports.domain.board.dto.BoardRequestsDTO;
 import org.example.allinone_sports.domain.board.dto.BoardResponseDTO;
+import org.example.allinone_sports.domain.board.dto.CommentRequestDTO;
+import org.example.allinone_sports.domain.board.dto.CommentResponseDTO;
 import org.example.allinone_sports.domain.board.dto.SuccessResponseDTO;
 import org.example.allinone_sports.domain.board.entity.BoardEntity;
+import org.example.allinone_sports.domain.board.entity.CommentEntity;
 import org.example.allinone_sports.domain.board.repository.BoardRepository;
+import org.example.allinone_sports.domain.board.repository.CommentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +26,6 @@ public class BoardService {
     public List<BoardResponseDTO> getPosts(String sportsType, String postType) {
         List<BoardEntity> boards;
 
-        // postType이 'ALL'이거나 'free'(통합)인 경우 해당 종목 전체 조회
-        // (주의: 기획 의도에 따라 'free'가 자유게시판만 의미한다면 아래 else 로직을 타야 함)
         if ("ALL".equalsIgnoreCase(postType)) {
             boards = boardRepository.findAllBySportsTypeOrderByModifiedAtDesc(sportsType);
         } else {
@@ -45,6 +47,13 @@ public class BoardService {
     // 선택한 게시글 조회
     @Transactional
     public BoardResponseDTO getPost(Long id) {
+        BoardEntity board = boardRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
+        );
+
+        // 조회수 증가
+        board.incrementViewCount();
+
         return boardRepository.findById(id).map(BoardResponseDTO::new).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
@@ -67,8 +76,16 @@ public class BoardService {
         BoardEntity board = boardRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
-
         boardRepository.deleteById(id);
         return new SuccessResponseDTO(true);
+    }
+
+    @Transactional
+    public void toggleLike(Long id) throws Exception {
+        BoardEntity board = boardRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
+        );
+
+        board.updateLikeCount(board.getLikeCount() + 1);
     }
 }

@@ -4,6 +4,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.example.allinone_sports.domain.board.dto.BoardRequestsDTO;
 import org.example.allinone_sports.domain.board.dto.BoardResponseDTO;
+import org.example.allinone_sports.domain.board.dto.CommentRequestDTO;
+import org.example.allinone_sports.domain.board.dto.CommentResponseDTO;
 import org.example.allinone_sports.domain.board.dto.SuccessResponseDTO;
 import org.example.allinone_sports.domain.board.service.BoardService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,5 +52,10 @@ public class BoardController {
     @DeleteMapping("/api/post/{id}")
     public SuccessResponseDTO deletePost(@PathVariable Long id) throws Exception {
         return boardService.deletePost(id);
+    }
+
+    @PostMapping("/api/post/{id}/like")
+    public void toggleLike(@PathVariable Long id) throws Exception {
+        boardService.toggleLike(id);
     }
 }

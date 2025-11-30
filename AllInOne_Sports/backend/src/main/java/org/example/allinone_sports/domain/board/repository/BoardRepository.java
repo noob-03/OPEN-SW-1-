@@ -1,5 +1,6 @@
 package org.example.allinone_sports.domain.board.repository;
 
+import io.micrometer.observation.ObservationFilter;
 import java.util.List;
 import org.example.allinone_sports.domain.board.entity.BoardEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

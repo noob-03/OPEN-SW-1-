@@ -20,7 +20,7 @@ public class BoardResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
     private String postType;
-    private Long userId;
+    private String username;
     private Long price;
     private String sportsType;
     private String gameDate;
@@ -39,7 +39,7 @@ public class BoardResponseDTO {
         this.createdAt = entity.getCreatedAt();
         this.modifiedAt = entity.getModifiedAt();
         this.postType = entity.getPostType();
-        this.userId = entity.getUserId();
+        this.username = entity.getUsername();
         this.price = entity.getPrice();
         this.sportsType = entity.getSportsType();
         this.gameDate = entity.getGameDate();
