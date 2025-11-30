@@ -31,7 +31,7 @@ public class FollowEntity {
 
     // TeamEntity와 N:1 관계
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id", nullable = false, referencedColumnName = "teamid")
+    @JoinColumn(name = "team_id", nullable = false, referencedColumnName = "team_id")
     // 중요: TeamEntity의 @Column(name="teamid")와 철자가 정확히 일치해야 합니다.
     private TeamEntity team;
 }
