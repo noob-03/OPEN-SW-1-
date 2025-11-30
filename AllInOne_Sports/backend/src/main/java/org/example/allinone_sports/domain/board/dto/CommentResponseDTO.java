@@ -11,14 +11,14 @@ public class CommentResponseDTO {
     private Long id;
     private String content;
     private String author;
-    private Long userId;
+    private String username;
     private LocalDateTime createdAt;
 
     public CommentResponseDTO(CommentEntity entity) {
         this.id = entity.getId();
         this.content = entity.getContent();
         this.author = entity.getAuthor();
-        this.userId = entity.getUserId();
+        this.username = entity.getUsername();
         this.createdAt = entity.getCreatedAt();
     }
 }

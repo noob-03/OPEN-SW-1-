@@ -22,7 +22,7 @@ public class CommentEntity extends TimeStampedEntity {
     private String author;
 
     @Column(nullable = false)
-    private Long userId;
+    private String username;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
@@ -31,7 +31,11 @@ public class CommentEntity extends TimeStampedEntity {
     public CommentEntity(CommentRequestDTO requestDTO, BoardEntity board) {
         this.content = requestDTO.getContent();
         this.author = requestDTO.getAuthor();
-        this.userId = requestDTO.getUserId();
+        this.username = requestDTO.getUsername();
         this.board = board;
+    }
+
+    public void update(String content) {
+        this.content = content;
     }
 }
