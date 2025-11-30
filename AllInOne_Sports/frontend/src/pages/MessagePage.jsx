@@ -93,12 +93,12 @@ function MessagePage() {
 
   const currentRoom = rooms.find(r => r.id === selectedRoomId);
 
-  // // 스크롤을 항상 최신 메시지로 이동
-  // const scrollToBottom = () => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // };
+  // 스크롤을 항상 최신 메시지로 이동
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // useEffect(scrollToBottom, [messages]);
+  useEffect(scrollToBottom, [messages]);
 
   // 1. 채팅방 목록 로드 유틸리티
   const fetchRooms = async (selectNewRoom = false, newRoomId = null) => {
