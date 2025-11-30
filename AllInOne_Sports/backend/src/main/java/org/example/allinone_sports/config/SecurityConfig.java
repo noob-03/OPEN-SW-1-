@@ -123,6 +123,7 @@ public class SecurityConfig {
                         .requestMatchers("/jwt/exchange", "/jwt/refresh", "/login?error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/exist", "/user").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/post").permitAll() // 수정 필요
+                        .requestMatchers(HttpMethod.POST, "/api/post/*/like").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
 
@@ -141,6 +142,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.PUT, "/user").hasRole(UserRoleType.USER.name())
                         .requestMatchers(HttpMethod.DELETE, "/user").hasRole(UserRoleType.USER.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/**").hasRole(UserRoleType.USER.name())
                         .anyRequest().authenticated()
                 );
 
