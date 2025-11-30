@@ -17,4 +17,6 @@ public interface MatchRepository extends JpaRepository<MatchEntity, Long> {
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+    // 홈팀 또는 원정팀이 특정 ID인 경기 조회 (날짜순 정렬)
+    List<MatchEntity> findByHomeTeam_TeamIdOrAwayTeam_TeamIdOrderByMatchDateAsc(Long homeTeamId, Long awayTeamId);
 }

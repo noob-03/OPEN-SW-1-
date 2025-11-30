@@ -34,4 +34,15 @@ public class MatchController {
 
         return ResponseEntity.ok(matchDTOs);
     }
+    // GET /api/matches/team/{teamId}
+    @GetMapping("/team/{teamId}")
+    public ResponseEntity<List<MatchDto>> getTeamMatches(@PathVariable Long teamId) {
+        List<MatchEntity> matches = matchService.getTeamMatches(teamId);
+
+        List<MatchDto> matchDTOs = matches.stream()
+                .map(MatchDto::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(matchDTOs);
+    }
 }
