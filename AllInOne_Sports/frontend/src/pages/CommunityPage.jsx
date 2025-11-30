@@ -3,7 +3,7 @@ import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, Us
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAccess } from '../util/fetchUtil';
 
-const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL || '';
+const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
 const MOCK_TEAMS = [
   { id: '1', name: '두산 베어스', sport: 'baseball', league: 'KBO' },
@@ -209,7 +209,7 @@ function CommunityPage({ sportMode }) {
     if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
 
     try {
-        const response = await fetchWithAccess(`/api/post/${selectedPost.id}`, {
+        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}`, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -345,26 +345,10 @@ function CommunityPage({ sportMode }) {
   const handleLikePost = async () => {
     if (!selectedPost) return;
     try {
-        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/like`, {
+        const response = await fetch(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/like`, {
             method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}) 
         });
-
-        if (response.ok) {
-            const isLiked = !selectedPost.likedByCurrentUser;
-            const newCount = isLiked ? selectedPost.likes + 1 : selectedPost.likes - 1;
-            
-            const updatedPost = { 
-                ...selectedPost, 
-                likes: newCount,
-                likedByCurrentUser: isLiked
-            };
-            
-            setSelectedPost(updatedPost);
-            setPosts(posts.map(p => p.id === updatedPost.id ? { ...p, likes: newCount } : p));
-        }
+        handlePostClick(selectedPost)
     } catch (error) {
         console.error("좋아요 에러:", error);
     }
