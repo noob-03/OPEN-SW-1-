@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAccess } from "../util/fetchUtil";
 import { LogOut, User, MessageSquare, Bell, Users, HelpCircle, Settings, X, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
@@ -12,12 +13,15 @@ function MainPage({ sportMode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // [추가] 경기 일정 데이터 상태
+    const [matches, setMatches] = useState([]);
+
     const [showPanel, setShowPanel] = useState(false);
     const [panelType, setPanelType] = useState('news');
 
     const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
 
-    /* 🔹 사용자 정보 불러오기 */
+    /* 🔹 초기 데이터 불러오기 (사용자 정보 + 경기 일정) */
     useEffect(() => {
         const accessToken = localStorage.getItem("accessToken");
 
@@ -26,38 +30,49 @@ function MainPage({ sportMode }) {
             return;
         }
 
-        const fetchUserInfo = async () => {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
-                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                // 1. 사용자 정보 불러오기
+                const userRes = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
                     method: 'GET',
                     credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!userRes.ok) throw new Error("유저 정보 불러오기 실패");
+                const userData = await userRes.json();
+                setUserInfo(userData);
+
+                // 2. 경기 일정 불러오기 (이번 달, 기본 리그)
+                // sportMode에 따라 기본 리그 설정 (축구: K1, 야구: KBO)
+                const defaultLeague = sportMode === 'soccer' ? 'K1' : 'KBO';
+                const today = new Date();
+                const year = 2025; // 데모용 고정 (실제로는 today.getFullYear())
+                const month = 11;  // 데모용 고정 (실제로는 today.getMonth() + 1)
+
+                const matchRes = await axios.get(`${BACKEND_API_BASE_URL}/api/matches`, {
+                    params: {
+                        league: defaultLeague,
+                        year: year,
+                        month: month
+                    }
                 });
 
-                if (!res.ok) throw new Error("유저 정보 불러오기 실패");
+                // 최근 4경기만 잘라서 저장 (메인 페이지용)
+                setMatches(matchRes.data.slice(0, 4));
 
-                const data = await res.json();
-                setUserInfo(data);
             } catch (err) {
-                setError("유저 정보를 불러오지 못했습니다.");
+                console.error("데이터 로딩 실패:", err);
+                setError("정보를 불러오지 못했습니다.");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchUserInfo();
-    }, []);
+        fetchData();
+    }, [sportMode]); // sportMode가 바뀌면 경기 일정도 다시 불러옴
 
-    /* 🔹 Mock Data */
-    const matchSchedule = [
-        { id: 1, time: "01:30", home: "아스날", away: "토트넘", homeLogo: "🔴", awayLogo: "⚪" },
-        { id: 2, time: "01:30", home: "프랑크", away: "우니온", homeLogo: "🦅", awayLogo: "🐻" },
-        { id: 3, time: "04:30", home: "인터밀란", away: "AC밀란", homeLogo: "🔵", awayLogo: "🔴" },
-        { id: 4, time: "05:00", home: "엘체", away: "레알마드", homeLogo: "🟢", awayLogo: "👑" },
-    ];
-
+    /* 🔹 Mock Data (인기 게시글, 뉴스) */
     const popularPosts = [
         { id: 1, title: "진짜 역대급 미친 경기력ㄷㄷ...", views: 100 },
         { id: 2, title: "아스날 새 유니폼 바코드 논란", views: 100 },
@@ -72,7 +87,7 @@ function MainPage({ sportMode }) {
         { id: 3, text: "쪽지 3건이 도착했습니다.", date: "2025-11-10" },
     ];
 
-    /* 🔹 패널 useMemo 수정 */
+    /* 🔹 패널 useMemo */
     const panelContent = useMemo(() => {
         if (panelType === 'news') {
             return {
@@ -100,7 +115,7 @@ function MainPage({ sportMode }) {
 
     const handleAccountManage = () => navigate('/account');
     const handleMessagePage = () => navigate('/message');
-    const handleSupport = () => navigate('/support'); // 핸들러 추가
+    const handleSupport = () => navigate('/support');
 
     /* 🔹 스타일 */
     const styles = {
@@ -139,7 +154,6 @@ function MainPage({ sportMode }) {
 
     return (
         <div style={{ position: 'relative', minHeight: '100vh' }}>
-            {/* App.jsx에서 배경 처리하므로 제거 */}
 
             <div className="container" style={{ paddingTop: '150px', paddingBottom: '80px' }}>
 
@@ -214,23 +228,44 @@ function MainPage({ sportMode }) {
                 <div className="row g-4">
                     <div className="col-lg-5">
                         <div className="card p-4 border-0 shadow-sm" style={styles.glassCard}>
-                            <h4 className="fw-bold mb-4">경기일정</h4>
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h4 className="fw-bold m-0">경기일정</h4>
+                                <button className="btn btn-sm btn-link text-decoration-none text-muted" onClick={() => navigate('/calendar')}>더보기</button>
+                            </div>
+
                             <div className="d-flex flex-column gap-3">
-                                {matchSchedule.map(match => (
-                                    <div key={match.id} className="d-flex justify-content-between align-items-center border-bottom pb-2">
-                                        <div className="d-flex align-items-center gap-2" style={{ width: '35%' }}>
-                                            <span className="fs-5">{match.homeLogo}</span>
-                                            <span className="fw-semibold text-truncate">{match.home}</span>
+                                {/* [수정] DB 데이터 연동 */}
+                                {matches.length > 0 ? matches.map(match => {
+                                    // 시간 포맷팅 (예: 14:00)
+                                    const timeString = new Date(match.matchDate).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+                                    return (
+                                        <div key={match.id} className="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                            {/* 홈팀 */}
+                                            <div className="d-flex align-items-center gap-2" style={{ width: '35%' }}>
+                                                {match.homeTeam.logoUrl ? (
+                                                    <img src={match.homeTeam.logoUrl} alt={match.homeTeam.name} style={{ width: '24px', height: '24px', objectFit: 'contain' }} referrerPolicy="no-referrer" />
+                                                ) : <span>⚽</span>}
+                                                <span className="fw-semibold text-truncate">{match.homeTeam.name}</span>
+                                            </div>
+
+                                            {/* 시간 */}
+                                            <div className="text-center text-muted small" style={{ width: '30%' }}>
+                                                <span className="fw-bold text-dark">{timeString}</span>
+                                            </div>
+
+                                            {/* 원정팀 */}
+                                            <div className="d-flex align-items-center justify-content-end gap-2" style={{ width: '35%' }}>
+                                                <span className="fw-semibold text-truncate">{match.awayTeam.name}</span>
+                                                {match.awayTeam.logoUrl ? (
+                                                    <img src={match.awayTeam.logoUrl} alt={match.awayTeam.name} style={{ width: '24px', height: '24px', objectFit: 'contain' }} referrerPolicy="no-referrer" />
+                                                ) : <span>⚽</span>}
+                                            </div>
                                         </div>
-                                        <div className="text-center text-muted small" style={{ width: '30%' }}>
-                                            <span className="fw-bold text-dark">{match.time}</span>
-                                        </div>
-                                        <div className="d-flex align-items-center justify-content-end gap-2" style={{ width: '35%' }}>
-                                            <span className="fw-semibold text-truncate">{match.away}</span>
-                                            <span className="fs-5">{match.awayLogo}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                }) : (
+                                    <div className="text-center text-muted py-3">예정된 경기가 없습니다.</div>
+                                )}
                             </div>
                         </div>
                     </div>
