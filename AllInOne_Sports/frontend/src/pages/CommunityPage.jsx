@@ -360,7 +360,9 @@ function CommunityPage({ sportMode }) {
 
     try {
         const payload = {
+            author: currentUser.nickname,
             content: commentInput,
+            username: currentUser.username
         };
 
         const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/comment`, {
