@@ -18,9 +18,10 @@ function Footer() {
           <div className="col-md-6 text-md-end">
             <h6 className="text-white-50">Quick Link's</h6>
             <ul className="list-unstyled">
-              <li><a href="/calendar" className="text-white text-decoration-none">Calendar</a></li>
-              <li><a href="/community" className="text-white text-decoration-none">Community</a></li>
-              <li><a href="/ticket" className="text-white text-decoration-none">Ticket</a></li>
+                <li><a href="/teams" className="text-white text-decoration-none">Teams</a></li>
+                <li><a href="/calendar" className="text-white text-decoration-none">Calendar</a></li>
+                <li><a href="/community" className="text-white text-decoration-none">Community</a></li>
+                <li><a href="/ticket" className="text-white text-decoration-none">Ticket</a></li>
             </ul>
           </div>
         </div>
