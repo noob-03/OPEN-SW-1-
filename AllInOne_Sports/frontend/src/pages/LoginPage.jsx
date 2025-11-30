@@ -1,17 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import axios from 'axios';
 
-const MOCK_TOP_MATCHES = [
-  { id: 1, title: "아스날 vs 토트넘", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
-  { id: 2, title: "맨시티 vs 리버풀", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
-  { id: 3, title: "바르셀로나 vs 레알", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
-  { id: 4, title: "뮌헨 vs 도르트문트", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/5C67F2?text=Match" },
-  { id: 5, title: "PSG vs 마르세유", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
-  { id: 6, title: "AC밀란 vs 인터밀란", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
-  { id: 7, title: "첼시 vs 맨유", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
-  { id: 8, title: "유벤투스 vs 나폴리", imageUrl: "https://via.placeholder.com/300x200/f0f4f8/E03131?text=Match" },
-];
+const BACKEND_API_BASE_URL = 'http://localhost:8080';
 
 const LoginPage = ({ sportMode }) => {
   const navigate = useNavigate();
@@ -21,22 +13,68 @@ const LoginPage = ({ sportMode }) => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  // [추가] 경기 데이터 상태
+  const [topMatches, setTopMatches] = useState([]);
+
+  // 슬라이드 관련 상태
   const [currentSlide, setCurrentSlide] = useState(0);
   const chunkSize = 4;
 
+  // 1. 경기 데이터 불러오기
+  useEffect(() => {
+    const fetchTopMatches = async () => {
+      try {
+        const today = new Date();
+        // 이번 달 경기 데이터 가져오기 (필요하면 다음 달 데이터도 가져오도록 로직 수정 가능)
+        // 여기서는 편의상 '이번 달'의 '모든 리그' 경기를 가져온다고 가정하거나,
+        // 특정 리그(K1, KBO 등)를 지정해서 가져옵니다.
+        const leagueParam = sportMode === 'soccer' ? 'K1' : 'KBO';
+
+        const response = await axios.get(`${BACKEND_API_BASE_URL}/api/matches`, {
+            params: {
+                league: leagueParam,
+                year: 2025, // 데모용 (실제: today.getFullYear())
+                month: 11   // 데모용 (실제: today.getMonth() + 1)
+            }
+        });
+
+        // 가져온 데이터를 UI에 맞게 변환
+        const formattedMatches = response.data.map(match => ({
+            id: match.id,
+            title: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+            // 이미지가 없으므로 팀 로고 두 개를 보여주거나, 기본 배경 이미지를 사용해야 함
+            // 여기서는 홈팀 로고를 대표 이미지로 사용하거나, 플레이스홀더 사용
+            homeLogo: match.homeTeam.logoUrl,
+            awayLogo: match.awayTeam.logoUrl,
+            date: new Date(match.matchDate).toLocaleDateString(),
+            time: new Date(match.matchDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        setTopMatches(formattedMatches);
+
+      } catch (error) {
+        console.error("경기 일정 로딩 실패:", error);
+        // 에러 시 빈 배열 유지
+      }
+    };
+
+    fetchTopMatches();
+  }, [sportMode]);
+
   const chunks = useMemo(() => {
     const tempChunks = [];
-    for (let i = 0; i < MOCK_TOP_MATCHES.length; i += chunkSize) {
-      tempChunks.push(MOCK_TOP_MATCHES.slice(i, i + chunkSize));
+    // 데이터가 없으면 빈 청크 방지
+    if (topMatches.length === 0) return [];
+
+    for (let i = 0; i < topMatches.length; i += chunkSize) {
+      tempChunks.push(topMatches.slice(i, i + chunkSize));
     }
     return tempChunks;
-  }, []);
+  }, [topMatches]);
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % chunks.length);
   const prevSlide = () =>
     setCurrentSlide((prev) => (prev - 1 + chunks.length) % chunks.length);
-
-  const BACKEND_API_BASE_URL = 'http://localhost:8080';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -83,11 +121,11 @@ const LoginPage = ({ sportMode }) => {
   const arrowTopStyle = `calc(${TITLE_AREA_HEIGHT + CARD_HEIGHT / 2 + 15}px)`;
 
   useEffect(() => {
+    if (chunks.length === 0) return;
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
   }, [chunks.length]);
 
-  // 🔥 라우터 주소 기반 배경 width 애니메이션
   const isLoginPage = location.pathname === "/" || location.pathname === "/login";
 
   const backgroundObjectStyle = {
@@ -210,7 +248,7 @@ const LoginPage = ({ sportMode }) => {
         </div>
       </div>
 
-      {/* 캐러셀 - 원본 유지 */}
+      {/* 캐러셀 (Top Matches) */}
       <section className="container px-5 position-relative"
         style={{ paddingTop: '60px', paddingBottom: '150px', backgroundColor: '#FFF' }}>
 
@@ -221,63 +259,80 @@ const LoginPage = ({ sportMode }) => {
           </h2>
         </div>
 
-        <button
-          onClick={prevSlide}
-          className="btn btn-link p-0 position-absolute d-none d-md-block"
-          style={{ left: '-50px', top: arrowTopStyle }}
-        >
-          <ChevronLeft size={40} />
-        </button>
+        {chunks.length > 0 && (
+            <>
+                <button
+                  onClick={prevSlide}
+                  className="btn btn-link p-0 position-absolute d-none d-md-block"
+                  style={{ left: '-50px', top: arrowTopStyle }}
+                >
+                  <ChevronLeft size={40} />
+                </button>
 
-        <button
-          onClick={nextSlide}
-          className="btn btn-link p-0 position-absolute d-none d-md-block"
-          style={{ right: '-50px', top: arrowTopStyle }}
-        >
-          <ChevronRight size={40} />
-        </button>
+                <button
+                  onClick={nextSlide}
+                  className="btn btn-link p-0 position-absolute d-none d-md-block"
+                  style={{ right: '-50px', top: arrowTopStyle }}
+                >
+                  <ChevronRight size={40} />
+                </button>
+            </>
+        )}
 
-        <div style={{ overflow: 'hidden' }}>
-          <div
-            className="row g-5 flex-nowrap"
-            style={{
-              width: `${chunks.length * 100}%`,
-              transform: `translateX(-${currentSlide * (100 / chunks.length)}%)`,
-              transition: 'transform 0.5s ease-in-out',
-            }}
-          >
-            {MOCK_TOP_MATCHES.map((match) => (
+        {topMatches.length > 0 ? (
+            <div style={{ overflow: 'hidden' }}>
               <div
-                key={match.id}
-                className="col-12 col-md-6 col-lg-3"
+                className="row g-5 flex-nowrap"
                 style={{
-                  flex: `0 0 ${100 / (chunks[0].length * chunks.length)}%`,
+                  width: `${chunks.length * 100}%`,
+                  transform: `translateX(-${currentSlide * (100 / chunks.length)}%)`,
+                  transition: 'transform 0.5s ease-in-out',
                 }}
               >
-                <div className="card h-100 border-0" style={{ backgroundColor: 'transparent' }}>
+                {/* 데이터가 있을 때 렌더링 */}
+                {topMatches.map((match) => (
                   <div
-                    className="position-relative rounded-4 overflow-hidden mb-3"
-                    style={{ height: `${CARD_HEIGHT}px`, backgroundColor: '#f8f9fa' }}
+                    key={match.id}
+                    className="col-12 col-md-6 col-lg-3"
+                    style={{
+                      flex: `0 0 ${100 / (chunks[0].length * chunks.length)}%`,
+                    }}
                   >
-                    <img
-                      src={match.imageUrl}
-                      className="w-100 h-100 object-fit-cover"
-                      alt={match.title}
-                      style={{ opacity: 0.8 }}
-                    />
+                    <div className="card h-100 border-0" style={{ backgroundColor: 'transparent' }}>
+                      <div
+                        className="position-relative rounded-4 overflow-hidden mb-3 d-flex flex-column align-items-center justify-content-center bg-light shadow-sm"
+                        style={{ height: `${CARD_HEIGHT}px` }}
+                      >
+                        {/* 팀 로고 대결 구도 UI */}
+                        <div className="d-flex align-items-center justify-content-center w-100 h-75 gap-3">
+                            {match.homeLogo ? <img src={match.homeLogo} alt="home" style={{width:'60px', height:'60px', objectFit:'contain'}} referrerPolicy="no-referrer"/> : <span className="fs-1">⚽</span>}
+                            <span className="fw-bold text-muted fs-4">VS</span>
+                            {match.awayLogo ? <img src={match.awayLogo} alt="away" style={{width:'60px', height:'60px', objectFit:'contain'}} referrerPolicy="no-referrer"/> : <span className="fs-1">⚽</span>}
+                        </div>
 
-                    <div
-                      className="position-absolute bottom-0 end-0 m-3 bg-black rounded-circle d-flex align-items-center justify-content-center"
-                      style={{ width: '32px', height: '32px', cursor: 'pointer' }}
-                    >
-                      <ArrowUpRight size={18} color="white" />
+                        {/* 경기 정보 */}
+                        <div className="w-100 text-center pb-3">
+                            <h6 className="fw-bold m-0 text-dark text-truncate px-2">{match.title}</h6>
+                            <small className="text-muted">{match.date} {match.time}</small>
+                        </div>
+
+                        <div
+                          className="position-absolute bottom-0 end-0 m-3 bg-black rounded-circle d-flex align-items-center justify-content-center"
+                          style={{ width: '32px', height: '32px', cursor: 'pointer' }}
+                        >
+                          <ArrowUpRight size={18} color="white" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+        ) : (
+            <div className="text-center py-5 text-muted">
+                <p>예정된 경기 정보가 없습니다.</p>
+            </div>
+        )}
       </section>
 
     </div>
