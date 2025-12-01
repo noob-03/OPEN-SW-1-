@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail, Trash2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAccess } from '../util/fetchUtil';
-import { MOCK_TEAMS } from '../../constants';
+import {MOCK_TEAMS} from '../../constants';
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
@@ -448,11 +448,8 @@ function CommunityPage({ sportMode }) {
 
     if (activeTab === 'ticket') {
       if (selectedTeam !== 'all') {
-        filtered = filtered.filter(post => post.teamId === selectedTeam);
-      } else if (sportMode === 'soccer') {
-        const leagueTeamIds = MOCK_TEAMS.filter(t => t.league === selectedLeague).map(t => t.id);
-        filtered = filtered.filter(post => leagueTeamIds.includes(post.teamId));
-      }
+        filtered = filtered.filter(post => post.teamId === selectedTeam); 
+      } 
       if (showSellingOnly) {
         filtered = filtered.filter(post => post.status === 'selling');
       }
@@ -910,9 +907,9 @@ function CommunityPage({ sportMode }) {
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="card-body p-4 d-flex align-items-center">
-                                <div className="me-4 text-center" style={{minWidth: '80px'}}>
-                                <label className="form-label fw-bold small text-muted mb-2">판매 상태</label>
-                                <div>
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">판매 상태</label>
+                                    <div>
                                     {post.status === 'selling' ? (
                                     <span className="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill w-100">
                                         판매중
