@@ -448,8 +448,17 @@ function CommunityPage({ sportMode }) {
 
     if (activeTab === 'ticket') {
       if (selectedTeam !== 'all') {
-        filtered = filtered.filter(post => post.teamId === selectedTeam); 
-      } 
+        filtered = filtered.filter(post => post.teamId === selectedTeam);
+      } else if (sportMode === 'soccer') {
+    // 1. MOCK_TEAMS에서 선택된 리그(K1, K2)에 해당하는 팀을 찾습니다.
+    // 2. 게시글의 teamId가 '이름'으로 되어있으므로, 여기서도 .map(t => t.name)으로 '이름' 리스트를 뽑습니다.
+    const leagueTeamNames = MOCK_TEAMS
+      .filter(t => t.league === selectedLeague)
+      .map(t => t.name); 
+
+    // 3. 게시글의 teamId(팀 이름)가 해당 리그의 팀 이름 목록에 포함되는지 확인합니다.
+    filtered = filtered.filter(post => leagueTeamNames.includes(post.teamId));
+  }
       if (showSellingOnly) {
         filtered = filtered.filter(post => post.status === 'selling');
       }
@@ -646,7 +655,13 @@ function CommunityPage({ sportMode }) {
           <div className="card-body p-4 p-lg-5">
             <div className="mb-4 pb-4 border-bottom">
                 <div className="d-flex justify-content-between">
-                    <h2 className="fw-bold mb-3">{selectedPost.title}</h2>
+                   <h2 className="fw-bold mb-3">
+                        <span className="badge rounded-pill bg-primary text-white px-3 py-2 me-2 shadow-sm align-middle" 
+                            style={{ fontSize: '1rem', fontWeight: '700', letterSpacing: '0.5px' }}>
+                            {selectedPost.teamId}
+                        </span>
+                        {selectedPost.title}
+                    </h2>
                     
                     {currentUser && selectedPost.userId === currentUser.userId && (
                         <div className="d-flex gap-2 flex-shrink-0">
@@ -907,22 +922,33 @@ function CommunityPage({ sportMode }) {
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="card-body p-4 d-flex align-items-center">
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">판매 상태</label>
+                                <div className="mb-3">            
+                                    <div className="me-4 text-center" style={{minWidth: '80px'}}>
+                                <label className="form-label fw-bold small text-muted mb-2">판매 상태</label>
                                     <div>
-                                    {post.status === 'selling' ? (
-                                    <span className="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill w-100">
-                                        판매중
-                                    </span>
-                                    ) : (
-                                    <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-3 py-2 rounded-pill w-100">
-                                        판매완료
-                                    </span>
-                                    )}
+                                        {post.status === 'selling' ? (
+                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill w-100">
+                                            판매중
+                                        </span>
+                                        ) : (
+                                        <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-3 py-2 rounded-pill w-100">
+                                            판매완료
+                                        </span>
+                                        )}
+                                    </div>
                                 </div>
-                                </div>
+                            </div>
                                 <div className="flex-grow-1">
-                                    <h5 className="fw-bold mb-1 text-truncate">{post.title}</h5>
+                                    <div className="d-flex align-items-center mb-1">
+                                        <span className="badge rounded-pill bg-primary text-white px-3 py-1 me-2 flex-shrink-0 shadow-sm" 
+                                            style={{ fontSize: '0.8rem', fontWeight: '700', letterSpacing: '0.5px' }}>
+                                            {post.teamId}
+                                        </span>
+                                        <h5 className="fw-bold mb-0 text-truncate text-dark">
+                                            {post.title}
+                                        </h5>
+                                    </div>
+                                    
                                     <div className="text-primary fw-bold fs-5">{post.price?.toLocaleString()}원</div>
                                     <div className="d-flex gap-3 mt-2 small text-muted">
                                         <span className="d-flex align-items-center gap-1"><User size={14}/> {post.author}</span>
