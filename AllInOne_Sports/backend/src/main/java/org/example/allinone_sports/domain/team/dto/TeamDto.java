@@ -31,6 +31,10 @@ public class TeamDto {
 
     // Entity → DTO 전체 변환
     public static TeamDto fromEntity(TeamEntity team) {
+        // ⭐ [추가] team 객체가 null이면 바로 null 리턴 (NPE 방지)
+        if (team == null) {
+            return null;
+        }
         return TeamDto.builder()
                 .teamId(team.getTeamId())
                 .sportId(team.getSportId())
