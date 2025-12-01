@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -22,7 +23,22 @@ public class KLeaguePlayerDataLoaderConfig implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        List<TeamEntity> teams = teamRepository.findAll();
+        List<TeamEntity> teams = teamRepository.findAll()
+                .stream()
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("KT"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("LG"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("NC"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("SS"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("LT"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("HT"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("OB"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("SK"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("WO"))
+                .filter(t -> t.getTeamCode() != null && !t.getTeamCode().equals("HH"))
+
+                .collect(Collectors.toList());
+
+
 
         for (TeamEntity team : teams) {
 
