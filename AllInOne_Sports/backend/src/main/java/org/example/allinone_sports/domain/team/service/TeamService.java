@@ -21,10 +21,6 @@ public class TeamService {
         return repo.findAll();
     }
 
-    public List<TeamEntity> getTeamsBySport(Integer sportId) {
-        return repo.findBySportId(sportId);
-    }
-
     public TeamEntity getTeam(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Team not found: " + id));

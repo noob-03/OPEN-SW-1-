@@ -1,80 +1,90 @@
 package org.example.allinone_sports.api;
 
+import lombok.RequiredArgsConstructor;
+import org.example.allinone_sports.domain.team.dto.TeamDto;
 import org.example.allinone_sports.domain.team.entity.TeamEntity;
 import org.example.allinone_sports.domain.team.service.TeamService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/teams")
+@RequestMapping("/api/teams")
 public class TeamController {
 
     private final TeamService teamService;
 
-    // 전체 팀 목록
+    // ✔ 전체 팀 목록 조회 (DTO로 반환)
     @GetMapping
-    public List<TeamEntity> getAllTeams() {
-        return teamService.getAllTeams();
+    public List<TeamDto> getAllTeams() {
+        return teamService.getAllTeams()
+                .stream()
+                .map(TeamDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    // 스포츠별 팀 조회
+    // ✔ 스포츠별 팀 조회
     @GetMapping("/sport/{sportId}")
-    public List<TeamEntity> getTeamsBySport(@PathVariable Integer sportId) {
-        return teamService.getTeamsBySport(sportId);
+    public List<TeamDto> getTeamsBySport(@PathVariable Integer sportId) {
+        return teamService.getTeamsBySport(sportId)
+                .stream()
+                .map(TeamDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    // teamId 로 상세 조회
+    // ✔ teamId로 상세 조회
     @GetMapping("/{teamId}")
-    public TeamEntity getTeam(@PathVariable Long teamId) {
-        return teamService.getTeam(teamId);
+    public TeamDto getTeam(@PathVariable Long teamId) {
+        return TeamDto.fromEntity(teamService.getTeam(teamId));
     }
 
-    // teamId 로 로고 조회
+    // ✔ teamId로 로고 조회 (문자열은 그대로 반환)
     @GetMapping("/{teamId}/logo")
-    public String getLogo(@PathVariable Long teamId) {
+    public String getTeamLogo(@PathVariable Long teamId) {
         return teamService.getTeamLogo(teamId);
     }
 
-    // 이름으로 팀 상세 조회
+    // ✔ 이름으로 상세 조회
     @GetMapping("/name/{teamName}")
-    public TeamEntity getTeamByName(@PathVariable String teamName) {
-        return teamService.getTeamByName(teamName);
+    public TeamDto getTeamByName(@PathVariable String teamName) {
+        return TeamDto.fromEntity(teamService.getTeamByName(teamName));
     }
 
-    // 이름으로 로고 조회
+    // ✔ 이름으로 로고 조회
     @GetMapping("/name/{teamName}/logo")
-    public String getLogoByName(@PathVariable String teamName) {
+    public String getTeamLogoByName(@PathVariable String teamName) {
         return teamService.getTeamLogoByName(teamName);
     }
 
     @GetMapping("/name/{teamName}/sns")
-    public String getTeamSnsByName(@PathVariable String teamName) {
+    public String getTeamSns(@PathVariable String teamName) {
         return teamService.getTeamByName(teamName).getSnsLink();
     }
 
     @GetMapping("/name/{teamName}/teamlink")
-    public String getTeamLinkByName(@PathVariable String teamName) {
+    public String getTeamHomepage(@PathVariable String teamName) {
         return teamService.getTeamByName(teamName).getTeamLink();
     }
 
     @GetMapping("/name/{teamName}/ticketlink")
-    public String getTicketLinkByName(@PathVariable String teamName) {
+    public String getTeamTicketLink(@PathVariable String teamName) {
         return teamService.getTeamByName(teamName).getTicketLink();
     }
 
     @GetMapping("/name/{teamName}/teamstadium")
-    public String getTeamStadiumByName(@PathVariable String teamName) {
+    public String getTeamStadium(@PathVariable String teamName) {
         return teamService.getTeamByName(teamName).getTeamStadium();
     }
 
     @GetMapping("/kleague/records")
-    public List<TeamEntity> getKLeagueRecords() {
-        return teamService.getTeamsBySport(2);   // sportId = 2
+    public List<TeamDto> getKLeagueRecords() {
+        return teamService.getTeamsBySport(2)
+                .stream()
+                .map(TeamDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }
-

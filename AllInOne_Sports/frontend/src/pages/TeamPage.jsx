@@ -154,13 +154,23 @@ function TeamPage({ sportMode }) {
                                  {team.logoUrl ? <img src={team.logoUrl} alt={team.name} style={{ maxHeight: '100%', maxWidth: '80%', objectFit: 'contain' }} referrerPolicy="no-referrer"/> : <div className="fw-bold text-muted">{team.name}</div>}
                             </div>
                             <h5 className="fw-bold mb-1">{team.name}</h5>
-                            <p className="text-muted small mb-3">홈구장 정보 없음</p>
+                            <p className="text-muted small mb-3">
+                              {team.teamStadium ? team.teamStadium : "홈구장 정보 없음"}
+                            </p>
+
                         </Link>
                         <div className="bg-light rounded-3 p-2 d-flex justify-content-around small">
-                            <div><div className="text-muted">순위</div><div className="fw-bold">-위</div></div>
-                            <div className="vr"></div>
-                            <div><div className="text-muted">승점</div><div className="fw-bold">-pts</div></div>
+                          <div>
+                            <div className="text-muted">순위</div>
+                            <div className="fw-bold">{team.teamRank ? `${team.teamRank}위` : "-위"}</div>
+                          </div>
+                          <div className="vr"></div>
+                          <div>
+                            <div className="text-muted">승점</div>
+                            <div className="fw-bold">{team.teamPoint ? `${team.teamPoint} pts` : "-pts"}</div>
+                          </div>
                         </div>
+
                     </div>
                 </div>
             );
