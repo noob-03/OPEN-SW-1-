@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAccess } from "../util/fetchUtil";
+import axios from 'axios';
 import { 
     User, Lock, Loader2, Camera, 
     LogOut, Trash2, ChevronRight, Shield, Heart 
 } from 'lucide-react';
-import { MOCK_TEAMS } from '../../constants';
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
 
@@ -16,6 +16,7 @@ function AccountPage() {
     // 유저 상태
     const [userInfo, setUserInfo] = useState(null);
     const [profileImage, setProfileImage] = useState(null); // 프로필 이미지 URL
+    const [followedTeamIds, setFollowedTeamIds] = useState([]); // 내 팔로우 팀 ID 목록
     
     // 폼 상태
     const [nickname, setNickname] = useState('');
@@ -26,6 +27,10 @@ function AccountPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false); // 비밀번호 변경창 토글
     const [message, setMessage] = useState(null);
+
+     const fetchFollowTeam = async () => {
+       
+    }
 
     // --- 1. 초기 데이터 로드 ---
     useEffect(() => {
@@ -50,8 +55,7 @@ function AccountPage() {
                     // DB에서 불러온 프로필 이미지가 있다면 여기서 setProfileImage 처리 가능
                 } else {
                     throw new Error('Failed to fetch user info');
-                }
-
+                } 
             } catch (err) {
                 console.error(err);
                 alert("유저 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
@@ -60,24 +64,77 @@ function AccountPage() {
                 setIsLoading(false);
             }
         };
-
+        
         fetchUserInfo();
     }, [navigate]);
 
-    // --- 2. 헬퍼 함수: 내 팔로우 팀 찾기 ---
-    const getMyTeams = () => {
-        if (!userInfo || !userInfo.teamILove) return [];
-        
-        let teamIds = [];
-        // teamILove가 배열인지 문자열인지 확인 후 처리
-        if (Array.isArray(userInfo.teamILove)) {
-            teamIds = userInfo.teamILove;
-        } else if (typeof userInfo.teamILove === 'string') {
-            teamIds = userInfo.teamILove.split(',');
-        }
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
             
-        return teamIds.map(id => MOCK_TEAMS.find(t => t.id === id.trim())).filter(Boolean);
-    };
+            let currentUserId = null;
+            const storedUserId = localStorage.getItem('userId');
+            if (storedUserId) {
+                currentUserId = storedUserId.replace(/^"|"$/g, '');
+            } else {
+                // 토큰에서 추출 시도
+                let token = localStorage.getItem('accessToken') || localStorage.getItem('token');
+                if (token) {
+                    currentUserId = getUserIdFromToken(token);
+                    if (currentUserId) localStorage.setItem('userId', currentUserId);
+                }
+            }
+
+            if (currentUserId) {
+                try {
+                    const followRes = await axios.get(`http://localhost:8080/api/follow/my`, {
+                        params: { userId: currentUserId }
+                    });
+
+                    const data = followRes.data;
+                    let teamsList = [];
+
+                    // 1. 응답이 배열인 경우 (팀이 여러 개)
+                    if (Array.isArray(data)) {
+                        teamsList = data; 
+                    } 
+                    // 2. 응답이 단일 객체인 경우 (팀이 1개)
+                    else if (data && data.teamId) {
+                        teamsList = [data]; 
+                    }
+                    
+                    // 3. 팀 객체 배열을 상태에 저장
+                    setFollowedTeamIds(teamsList);
+
+                    // console.log(followedTeamIds);
+                } catch (err) {
+                    console.warn("팔로우 목록 로딩 실패:", err);
+                    setFollowedTeamIds([]);
+                }
+            }
+
+            setIsLoading(false);
+        };
+
+        fetchData();
+    }, []); 
+
+   
+
+    // --- 2. 헬퍼 함수: 내 팔로우 팀 찾기 ---
+    // const getMyTeams = () => {
+    //     if (!userInfo || !userInfo.teamILove) return [];
+        
+    //     let teamIds = [];
+    //     // teamILove가 배열인지 문자열인지 확인 후 처리
+    //     if (Array.isArray(userInfo.teamILove)) {
+    //         teamIds = userInfo.teamILove;
+    //     } else if (typeof userInfo.teamILove === 'string') {
+    //         teamIds = userInfo.teamILove.split(',');
+    //     }
+            
+    //     return teamIds.map(id => MOCK_TEAMS.find(t => t.id === id.trim())).filter(Boolean);
+    // };
 
     // --- 3. 핸들러 ---
 
@@ -218,7 +275,8 @@ function AccountPage() {
         );
     }
 
-    const myTeams = getMyTeams();
+    // const myTeams = getMyTeams();
+    console.log(followedTeamIds);
 
     return (
         // 네비게이션 바가 보이도록 상단 padding 추가, 헤더 컴포넌트와 겹치지 않게 함
@@ -293,12 +351,22 @@ function AccountPage() {
                         <button className="btn btn-sm btn-link text-decoration-none" onClick={() => navigate('/teams')}>관리</button>
                     </div>
                     <div className="card-body px-4 pb-4 pt-0">
-                        {myTeams.length > 0 ? (
+                        {followedTeamIds.length > 0 ? (
                             <div className="d-flex gap-3 overflow-auto pb-2">
-                                {myTeams.map(team => (
-                                    <div key={team.id} className="text-center" style={{ minWidth: '70px' }}>
-                                        <div className="fs-1 mb-1">{team.logo}</div>
-                                        <div className="small fw-bold text-truncate" style={{maxWidth: '70px'}}>{team.name}</div>
+                                {followedTeamIds.map(team => (
+                                    <div key={team.teamId} className="text-center" style={{ minWidth: '80px' }}>
+                                        {/* 로고 이미지 처리 */}
+                                        <div className="mb-2 d-flex justify-content-center">
+                                            <img 
+                                                src={team.logoUrl} 
+                                                alt={team.name} 
+                                                style={{ width: '50px', height: '50px', objectFit: 'contain' }} 
+                                            />
+                                        </div>
+                                        {/* 팀 이름 */}
+                                        <div className="small fw-bold text-truncate" style={{ maxWidth: '80px' }}>
+                                            {team.name}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
