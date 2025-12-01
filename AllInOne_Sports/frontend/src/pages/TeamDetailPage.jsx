@@ -52,11 +52,15 @@ function TeamDetailPage({ sportMode }) {
     if (id) fetchData();
   }, [id]);
 
-  // --------------------------------------------------------------------------
-  // [로직 분리] 렌더링 전에 감독(등번호 없음)과 선수(등번호 있음)를 분류합니다.
-  // --------------------------------------------------------------------------
-  const directors = players.filter((p) => !p.playerNumber);
-  const fieldPlayers = players.filter((p) => p.playerNumber);
+// --------------------------------------------------------------------------
+// [로직 분리] 렌더링 전에 감독(등번호 없음)과 선수(등번호 있음)를 분류합니다.
+// --------------------------------------------------------------------------
+
+// 1. 감독: playerNumber가 아예 없는 경우 (null)
+const directors = players.filter((p) => p.playerNumber === null);
+// 2. 선수: playerNumber가 있는 경우 (0번 포함, null이 아닌 모든 값)
+// (주의: !p.playerNumber 라고 쓰면 0도 false가 되어 감독으로 가버립니다. 꼭 !== null을 써야 합니다)
+const fieldPlayers = players.filter((p) => p.playerNumber !== null);
 
   if (loading) return <div className="container pt-5 text-center">로딩 중...</div>;
   if (error || !team) return <div className="container pt-5 text-center text-danger">{error || "존재하지 않는 팀입니다."}</div>;
