@@ -23,7 +23,6 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    // 전체 목록 조회 (필터링 기능 추가)
     @GetMapping("/api/posts")
     public List<BoardResponseDTO> getPosts(
             @RequestParam(required = false, defaultValue = "baseball") String sportsType,
@@ -31,19 +30,16 @@ public class BoardController {
         return boardService.getPosts(sportsType, postType);
     }
 
-    // 게시글 작성
     @PostMapping("/api/post")
     public BoardResponseDTO createPost(@RequestBody BoardRequestsDTO requestsDto) {
         return boardService.createPost(requestsDto);
     }
 
-    // 선택한 게시글 조회
     @GetMapping("/api/post/{id}")
     public BoardResponseDTO getPost(@PathVariable Long id) {
         return boardService.getPost(id);
     }
 
-    // 선택한 게시글 수정
     @PutMapping("/api/post/{id}")
     public BoardResponseDTO updatePost(@PathVariable Long id, @RequestBody BoardRequestsDTO requestsDto) throws Exception {
         return boardService.updatePost(id, requestsDto);
@@ -57,5 +53,21 @@ public class BoardController {
     @PostMapping("/api/post/{id}/like")
     public void toggleLike(@PathVariable Long id) throws Exception {
         boardService.toggleLike(id);
+    }
+
+    @PostMapping("/api/post/{id}/comment")
+    public CommentResponseDTO createComment(
+            @PathVariable Long id,
+            @RequestBody CommentRequestDTO requestDto
+    ) {
+        System.out.println("pass1");
+        return boardService.createComment(id, requestDto);
+    }
+
+    @DeleteMapping("/api/comment/{commentId}")
+    public SuccessResponseDTO deleteComment(
+            @PathVariable Long commentId
+    ) {
+        return boardService.deleteComment(commentId);
     }
 }
