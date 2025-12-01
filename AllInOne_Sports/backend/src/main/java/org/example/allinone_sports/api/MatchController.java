@@ -1,7 +1,6 @@
 package org.example.allinone_sports.api;
 
 import lombok.RequiredArgsConstructor;
-import org.example.allinone_sports.domain.match.dto.MatchDto; // MatchDTO 임포트
 import org.example.allinone_sports.domain.match.dto.MatchDto;
 import org.example.allinone_sports.domain.match.entity.MatchEntity;
 import org.example.allinone_sports.domain.match.service.MatchService;
@@ -19,6 +18,7 @@ public class MatchController {
 
     private final MatchService matchService;
 
+    // ⭐ 월별 경기 조회 API
     @GetMapping
     public ResponseEntity<List<MatchDto>> getMatches(
             @RequestParam String league,
@@ -27,9 +27,20 @@ public class MatchController {
     ) {
         List<MatchEntity> matches = matchService.getMonthlyMatches(league, year, month);
 
-        // [수정] Entity List -> DTO List 변환
         List<MatchDto> matchDTOs = matches.stream()
-                .map(MatchDto::fromEntity)
+                .map(MatchDto::fromEntity) // ⭐ 추가됨: Entity → DTO 변환
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(matchDTOs);
+    }
+
+    // ⭐ 팀별 경기 조회 API
+    @GetMapping("/by-team/{teamId}")
+    public ResponseEntity<List<MatchDto>> getTeamMatches(@PathVariable Long teamId) {
+        List<MatchEntity> matches = matchService.getTeamMatches(teamId);
+
+        List<MatchDto> matchDTOs = matches.stream()
+                .map(MatchDto::fromEntity) // ⭐ 추가됨
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(matchDTOs);

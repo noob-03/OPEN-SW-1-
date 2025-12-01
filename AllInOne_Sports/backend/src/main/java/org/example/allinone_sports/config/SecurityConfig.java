@@ -126,11 +126,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/post/*/like").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/teams/**").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/api/players/by-team/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/players/by-team/**").permitAll()
                         // [추가됨] 팔로우 관련 API는 토큰 없이도 접근 가능하게 설정 (Controller에서 userId 파라미터로 처리하므로)
                         .requestMatchers(HttpMethod.GET,"/api/follow/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/follow/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/matches/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/matches/by-team/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.PUT, "/api/post/**").permitAll() // 수정 필요
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll() // 수정 필요

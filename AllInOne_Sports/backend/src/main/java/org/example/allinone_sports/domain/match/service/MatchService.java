@@ -36,4 +36,9 @@ public class MatchService {
         if ("baseball".equals(leagueCode)) return "KBO"; // 프론트에서 sportMode로 넘길 경우 대비
         return leagueCode; // KBO 등은 그대로
     }
+    // 특정 팀의 경기 일정 조회
+    public List<MatchEntity> getTeamMatches(Long teamId) {
+        // homeTeamId가 teamId 이거나 awayTeamId가 teamId인 경기 모두 조회
+        return matchRepository.findByHomeTeam_TeamIdOrAwayTeam_TeamIdOrderByMatchDateAsc(teamId, teamId);
+    }
 }
