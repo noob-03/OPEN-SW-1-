@@ -374,7 +374,7 @@ function CommunityPage({ sportMode }) {
         const response = await fetch(`${BACKEND_API_BASE_URL}/api/post/${selectedPost.id}/like`, {
             method: 'POST',
         });
-        handlePostClick(selectedPost)
+        // handlePostClick(selectedPost)
     } catch (error) {
         console.error("좋아요 에러:", error);
     }
