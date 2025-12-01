@@ -18,8 +18,6 @@ function TeamDetailPage({ sportMode }) {
   const fetchPlayers = async () => {
     try {
       const res = await axios.get(`http://localhost:8080/api/players/by-team/${id}`);
-      // 중요: 여기서 임의로 번호를 부여하던 코드를 삭제했습니다.
-      // DB에서 가져온 데이터 그대로(playerNumber가 있거나 없거나) 사용해야 감독 구분이 가능합니다.
       setPlayers(res.data || []);
     } catch (error) {
       console.error("선수 정보 로딩 실패:", error);
@@ -54,11 +52,15 @@ function TeamDetailPage({ sportMode }) {
     if (id) fetchData();
   }, [id]);
 
-  // --------------------------------------------------------------------------
-  // [로직 분리] 렌더링 전에 감독(등번호 없음)과 선수(등번호 있음)를 분류합니다.
-  // --------------------------------------------------------------------------
-  const directors = players.filter((p) => !p.playerNumber); // 등번호가 없으면 감독
-  const fieldPlayers = players.filter((p) => p.playerNumber); // 등번호가 있으면 선수
+// --------------------------------------------------------------------------
+// [로직 분리] 렌더링 전에 감독(등번호 없음)과 선수(등번호 있음)를 분류합니다.
+// --------------------------------------------------------------------------
+
+// 1. 감독: playerNumber가 아예 없는 경우 (null)
+const directors = players.filter((p) => p.playerNumber === null);
+// 2. 선수: playerNumber가 있는 경우 (0번 포함, null이 아닌 모든 값)
+// (주의: !p.playerNumber 라고 쓰면 0도 false가 되어 감독으로 가버립니다. 꼭 !== null을 써야 합니다)
+const fieldPlayers = players.filter((p) => p.playerNumber !== null);
 
   if (loading) return <div className="container pt-5 text-center">로딩 중...</div>;
   if (error || !team) return <div className="container pt-5 text-center text-danger">{error || "존재하지 않는 팀입니다."}</div>;
@@ -104,39 +106,23 @@ function TeamDetailPage({ sportMode }) {
             <div className="text-center text-md-start">
               <span className="badge bg-white text-dark mb-2 bg-opacity-75">{team.league}</span>
               <h1 className="fw-black display-4 mb-2">{team.name}</h1>
-              {/* 홈구장 정보 수정: team.teamStadium 사용 */}
               <p className="opacity-75 fs-5 d-flex align-items-center justify-content-center justify-content-md-start gap-2">
                 <MapPin size={18} /> {team.teamStadium || "홈구장 정보 없음"}
               </p>
 
               <div className="d-flex gap-2 justify-content-center justify-content-md-start mt-3">
                 {team.snsLink && (
-                  <a
-                    href={team.snsLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-outline-light btn-sm rounded-pill px-3 d-flex align-items-center gap-2"
-                  >
+                  <a href={team.snsLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline-light btn-sm rounded-pill px-3 d-flex align-items-center gap-2">
                     <Instagram size={16} /> Instagram
                   </a>
                 )}
                 {team.teamLink && (
-                  <a
-                    href={team.teamLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-outline-light btn-sm rounded-pill px-3 d-flex align-items-center gap-2"
-                  >
+                  <a href={team.teamLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline-light btn-sm rounded-pill px-3 d-flex align-items-center gap-2">
                     <Globe size={16} /> Official Web
                   </a>
                 )}
                 {team.ticketLink && (
-                  <a
-                    href={team.ticketLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-light text-dark btn-sm rounded-pill px-3 fw-bold"
-                  >
+                  <a href={team.ticketLink} target="_blank" rel="noopener noreferrer" className="btn btn-light text-dark btn-sm rounded-pill px-3 fw-bold">
                     예매하기
                   </a>
                 )}
@@ -149,9 +135,7 @@ function TeamDetailPage({ sportMode }) {
       {/* -------------------- 탭 메뉴 -------------------- */}
       <div className="d-flex border-bottom mb-4">
         <button
-          className={`btn rounded-0 py-3 px-4 fw-bold ${
-            activeTab === "schedule" ? "border-bottom border-3 text-primary" : "text-muted"
-          }`}
+          className={`btn rounded-0 py-3 px-4 fw-bold ${activeTab === "schedule" ? "border-bottom border-3 text-primary" : "text-muted"}`}
           style={{
             borderColor: activeTab === "schedule" ? themeColor : "transparent",
             color: activeTab === "schedule" ? themeColor : undefined,
@@ -162,9 +146,7 @@ function TeamDetailPage({ sportMode }) {
         </button>
 
         <button
-          className={`btn rounded-0 py-3 px-4 fw-bold ${
-            activeTab === "roster" ? "border-bottom border-3 text-primary" : "text-muted"
-          }`}
+          className={`btn rounded-0 py-3 px-4 fw-bold ${activeTab === "roster" ? "border-bottom border-3 text-primary" : "text-muted"}`}
           style={{
             borderColor: activeTab === "roster" ? themeColor : "transparent",
             color: activeTab === "roster" ? themeColor : undefined,
@@ -189,8 +171,16 @@ function TeamDetailPage({ sportMode }) {
                   const dateStr = matchDate.toLocaleDateString();
                   const timeStr = matchDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-                  const isHome = match.homeTeam.teamId === team.teamId;
-                  const opponent = isHome ? match.awayTeam : match.homeTeam;
+                  // ⭐ [수정됨] Optional Chaining(?.)을 사용하여 homeTeam이 null일 때 에러 방지
+                  // 기존: match.homeTeam.teamId -> 에러 발생
+                  // 수정: match.homeTeam?.teamId -> 안전함
+                  const isHome = match.homeTeam?.teamId === team.teamId;
+
+                  // ⭐ [수정됨] 상대팀 데이터가 null일 경우를 대비한 안전 장치
+                  let opponent = isHome ? match.awayTeam : match.homeTeam;
+                  if (!opponent) {
+                      opponent = { name: "상대팀 미정", logoUrl: null };
+                  }
 
                   return (
                     <div key={match.id} className="card border-0 shadow-sm p-3 rounded-3">
@@ -202,10 +192,11 @@ function TeamDetailPage({ sportMode }) {
                         </div>
 
                         <div className="flex-grow-1 d-flex justify-content-center align-items-center gap-3">
+                          {/* 우리 팀 (현재 페이지의 팀) */}
                           <div className="text-center" style={{ width: "100px" }}>
                             <div className="mb-1" style={{ height: "40px" }}>
                               {team.logoUrl ? (
-                                <img src={team.logoUrl} style={{ maxHeight: "100%" }} />
+                                <img src={team.logoUrl} style={{ maxHeight: "100%" }} alt={team.name} />
                               ) : (
                                 <span>⚽</span>
                               )}
@@ -224,10 +215,11 @@ function TeamDetailPage({ sportMode }) {
                             )}
                           </div>
 
+                          {/* 상대 팀 (opponent가 null이어도 안전하게 표시) */}
                           <div className="text-center" style={{ width: "100px" }}>
                             <div className="mb-1" style={{ height: "40px" }}>
                               {opponent.logoUrl ? (
-                                <img src={opponent.logoUrl} style={{ maxHeight: "100%" }} />
+                                <img src={opponent.logoUrl} style={{ maxHeight: "100%" }} alt={opponent.name} />
                               ) : (
                                 <span>⚽</span>
                               )}
@@ -254,10 +246,9 @@ function TeamDetailPage({ sportMode }) {
           </div>
         </div>
       ) : (
-        /* ---------- 선수단 탭 (수정된 구조) ---------- */
+        /* ---------- 선수단 탭 ---------- */
         <div>
-
-          {/* 1. 코칭 스태프 (감독) 섹션 - 감독이 있을 때만 표시 */}
+          {/* 1. 코칭 스태프 (감독) */}
           {directors.length > 0 && (
             <div className="mb-5">
               <h5 className="fw-bold mb-3 border-start border-4 border-dark ps-2">코칭 스태프</h5>
@@ -265,25 +256,9 @@ function TeamDetailPage({ sportMode }) {
                 {directors.map((director) => (
                   <div key={director.playerId} className="col-6 col-md-4 col-lg-2">
                     <div className="card border-0 shadow-sm text-center py-4 rounded-4 hover-scale h-100">
-                      {/* 이미지 */}
-                      <div
-                        className="mb-3 mx-auto d-flex align-items-center justify-content-center"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          background: "#f5f5f5",
-                          borderRadius: "50%",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <img
-                          src={director.playerUrl || "/default-player.png"}
-                          alt={director.playerName}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
+                      <div className="mb-3 mx-auto d-flex align-items-center justify-content-center" style={{ width: "80px", height: "80px", background: "#f5f5f5", borderRadius: "50%", overflow: "hidden" }}>
+                        <img src={director.playerUrl || "/default-player.png"} alt={director.playerName} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.display = 'none'; }} />
                       </div>
-                      {/* 이름 및 직책 */}
                       <h6 className="fw-bold mb-1">{director.playerName}</h6>
                       <span className="badge bg-dark mx-auto mt-1">감독</span>
                     </div>
@@ -293,7 +268,7 @@ function TeamDetailPage({ sportMode }) {
             </div>
           )}
 
-          {/* 2. 선수단 섹션 */}
+          {/* 2. 선수단 */}
           <div>
             <h5 className="fw-bold mb-3 border-start border-4 border-dark ps-2">선수단</h5>
             <div className="row g-3">
@@ -301,36 +276,14 @@ function TeamDetailPage({ sportMode }) {
                 fieldPlayers.map((player) => (
                   <div key={player.playerId} className="col-6 col-md-4 col-lg-2">
                     <div className="card border-0 shadow-sm text-center py-4 rounded-4 hover-scale h-100">
-                      {/* 이미지 */}
-                      <div
-                        className="mb-3 mx-auto d-flex align-items-center justify-content-center"
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          background: "#f5f5f5",
-                          borderRadius: "50%",
-                          overflow: "hidden",
-                        }}
-                      >
+                      <div className="mb-3 mx-auto d-flex align-items-center justify-content-center" style={{ width: "80px", height: "80px", background: "#f5f5f5", borderRadius: "50%", overflow: "hidden" }}>
                         {player.playerUrl ? (
-                          <img
-                            src={player.playerUrl}
-                            alt={player.playerName}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            onError={(e) => {
-                               e.target.style.display = 'none';
-                               e.target.parentElement.style.backgroundColor = '#eee'; // 이미지 깨지면 배경 회색
-                            }}
-                          />
+                          <img src={player.playerUrl} alt={player.playerName} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.style.backgroundColor = '#eee'; }} />
                         ) : (
                           <Users size={40} className="text-secondary" />
                         )}
                       </div>
-
-                      {/* 이름 */}
                       <h6 className="fw-bold mb-0">{player.playerName}</h6>
-
-                      {/* 등번호 */}
                       <small className="text-muted">No. {player.playerNumber}</small>
                     </div>
                   </div>

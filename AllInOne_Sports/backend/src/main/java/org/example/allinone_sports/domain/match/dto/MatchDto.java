@@ -24,15 +24,22 @@ public class MatchDto {
     private Integer homeScore;
     private Integer awayScore;
 
+// MatchDto.java 내부의 fromEntity 메서드 수정
+
     public static MatchDto fromEntity(MatchEntity match) {
         return MatchDto.builder()
                 .id(match.getId())
                 .league(match.getLeague())
-                .homeTeam(TeamDto.fromEntity(match.getHomeTeam())) // 팀 정보도 DTO로 변환
-                .awayTeam(TeamDto.fromEntity(match.getAwayTeam())) // 팀 정보도 DTO로 변환
+                // ⭐ 팀 정보가 없을 경우 null 처리 (안전장치 추가)
+                .homeTeam(match.getHomeTeam() != null ? TeamDto.fromEntity(match.getHomeTeam()) : null)
+                .awayTeam(match.getAwayTeam() != null ? TeamDto.fromEntity(match.getAwayTeam()) : null)
+
                 .matchDate(match.getMatchDate())
                 .stadium(match.getStadium())
-                .status(match.getStatus().name())
+
+                // ⭐ status가 null일 경우 에러 방지 (핵심 원인 해결)
+                .status(match.getStatus() != null ? match.getStatus().name() : null)
+
                 .homeScore(match.getHomeScore())
                 .awayScore(match.getAwayScore())
                 .build();
