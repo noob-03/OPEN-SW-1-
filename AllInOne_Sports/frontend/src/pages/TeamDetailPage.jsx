@@ -104,8 +104,9 @@ function TeamDetailPage({ sportMode }) {
             <div className="text-center text-md-start">
               <span className="badge bg-white text-dark mb-2 bg-opacity-75">{team.league}</span>
               <h1 className="fw-black display-4 mb-2">{team.name}</h1>
+              {/* 홈구장 정보 수정: team.teamStadium 사용 */}
               <p className="opacity-75 fs-5 d-flex align-items-center justify-content-center justify-content-md-start gap-2">
-                <MapPin size={18} /> {team.stadium || "홈구장 정보 없음"}
+                <MapPin size={18} /> {team.teamStadium || "홈구장 정보 없음"}
               </p>
 
               <div className="d-flex gap-2 justify-content-center justify-content-md-start mt-3">
