@@ -1,27 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail, Trash2 } from 'lucide-react';
+import { Search, Filter, MessageSquare, Heart, Eye, Megaphone, Ticket, Users, User, CheckCircle, ArrowLeft, Paperclip, Send, ThumbsUp, Image as ImageIcon, Mail, Trash2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchWithAccess } from '../util/fetchUtil';
+import { MOCK_TEAMS } from '../../constants';
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL;
-
-const MOCK_TEAMS = [
-  { id: '1', name: '두산 베어스', sport: 'baseball', league: 'KBO' },
-  { id: '2', name: 'LG 트윈스', sport: 'baseball', league: 'KBO' },
-  { id: '3', name: 'KIA 타이거즈', sport: 'baseball', league: 'KBO' },
-  { id: '4', name: '삼성 라이온즈', sport: 'baseball', league: 'KBO' },
-  { id: '5', name: '롯데 자이언츠', sport: 'baseball', league: 'KBO' },
-  { id: '6', name: '한화 이글스', sport: 'baseball', league: 'KBO' },
-  { id: '7', name: 'SSG 랜더스', sport: 'baseball', league: 'KBO' },
-  { id: '8', name: 'KT 위즈', sport: 'baseball', league: 'KBO' },
-  { id: '9', name: 'NC 다이노스', sport: 'baseball', league: 'KBO' },
-  { id: '10', name: '키움 히어로즈', sport: 'baseball', league: 'KBO' },
-  { id: '11', name: '울산 HD', sport: 'soccer', league: 'K1' },
-  { id: '12', name: '포항 스틸러스', sport: 'soccer', league: 'K1' },
-  { id: '13', name: 'FC 서울', sport: 'soccer', league: 'K1' },
-  { id: '14', name: '전북 현대', sport: 'soccer', league: 'K1' },
-  { id: '15', name: '수원 삼성', sport: 'soccer', league: 'K2' },
-];
 
 function CommunityPage({ sportMode }) {
   const navigate = useNavigate();
@@ -32,6 +15,9 @@ function CommunityPage({ sportMode }) {
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
 
   const [activeTab, setActiveTab] = useState('free'); 
   const [searchText, setSearchText] = useState('');
@@ -39,6 +25,7 @@ function CommunityPage({ sportMode }) {
   const [selectedLeague, setSelectedLeague] = useState('K1');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showSellingOnly, setShowSellingOnly] = useState(false);
+  const [status, setStatus] = useState("ONGOING");
 
   const [writeForm, setWriteForm] = useState({
     type: 'free', 
@@ -253,7 +240,17 @@ function CommunityPage({ sportMode }) {
   };
 
   const handleWriteClick = () => {
-    setWriteForm({ type: activeTab === 'notice' ? 'free' : activeTab, title: '', content: '', teamId: '', price: '', file: null });
+    setIsEditing(false);
+    setEditPostId(null);
+    setWriteForm({
+      type: 'free',
+      title: '',
+      content: '',
+      price: '',
+      teamId: '',
+      file: null,
+      status: 'ONGOING'
+    });
     setViewMode('write');
   };
 
@@ -277,22 +274,33 @@ function CommunityPage({ sportMode }) {
         const payload = {
             title: writeForm.title,
             author: currentUser.nickname,
-            userId: currentUser.id,
+            username: currentUser.username,
             contents: writeForm.content,
             postType: writeForm.type.toUpperCase(),
             sportsType: sportMode,
             price: writeForm.price ? parseInt(writeForm.price) : 0,
             teamId: writeForm.teamId, 
-            status: 'ONGOING',
+            status: writeForm.status,
             gameDate: new Date().toISOString()
         };
 
-        const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        let response;
+        if (isEditing && editPostId) {
+            // 🌟 수정 (PUT)
+            response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post/${editPostId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (response) alert("게시글이 수정되었습니다.");
+        } else {
+            // 🌟 작성 (POST)
+            response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/api/post`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        }
 
         if (response.ok) {
             alert('게시글이 등록되었습니다.');
@@ -306,6 +314,24 @@ function CommunityPage({ sportMode }) {
         alert("오류가 발생했습니다.");
     }
   };
+
+  const handleEditClick = (post) => {
+    console.log("수정 모드 진입:", post);
+    setIsEditing(true);
+    setEditPostId(post.id);
+
+    setWriteForm({
+        type: post.postType === 'TICKET' ? 'ticket' : post.postType === 'COMPANION' ? 'companion' : 'free',
+        title: post.title,
+        content: post.content, 
+        price: post.price || '',
+        teamId: post.teamId || '', // 팀 ID 매칭 필요 (문자열/숫자 확인)
+        file: null, // 파일은 다시 올려야 함 (보안상)
+        status: post.status || 'ONGOING'
+    });
+    
+    setViewMode('write');
+};
 
   const handlePostClick = async (post) => {
     try {
@@ -484,37 +510,76 @@ function CommunityPage({ sportMode }) {
             </div>
           </div>
 
-          {writeForm.type === 'ticket' && (
-            <div className="row g-3 mb-4 p-3 bg-light rounded-3">
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">구단 선택</label>
-                <select 
-                  className="form-select"
-                  value={writeForm.teamId}
-                  onChange={(e) => setWriteForm({ ...writeForm, teamId: e.target.value })}
-                >
-                  <option value="">구단을 선택하세요</option>
-                  {MOCK_TEAMS.filter(t => sportMode === 'baseball' ? t.sport === 'baseball' : t.sport === 'soccer').map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">판매 가격</label>
-                <div className="input-group">
-                  <input 
-                    type="number" 
-                    className="form-control" 
-                    placeholder="가격 입력"
-                    value={writeForm.price}
-                    onChange={(e) => setWriteForm({ ...writeForm, price: e.target.value })}
-                  />
-                  <span className="input-group-text">원</span>
+         {writeForm.type === 'ticket' && (
+            <>
+                <div className="row g-3 mb-4 p-3 bg-light rounded-3">
+                    <div className="col-md-6">
+                        <label className="form-label fw-bold small">구단 선택</label>
+                        <select 
+                        className="form-select"
+                        value={writeForm.teamId}
+                        onChange={(e) => setWriteForm({ ...writeForm, teamId: e.target.value })}
+                        >
+                        <option value="">구단을 선택하세요</option>
+                        {MOCK_TEAMS.filter(t => sportMode === 'baseball' ? t.sport === 'baseball' : t.sport === 'soccer').map(t => (
+                            <option key={t.id} value={t.name}>{t.name}</option> 
+                        ))}
+                        </select>
+                    </div>
+                    <div className="col-md-6">
+                        <label className="form-label fw-bold small">판매 가격</label>
+                        <div className="input-group">
+                        <input 
+                            type="number" 
+                            className="form-control" 
+                            placeholder="가격 입력"
+                            value={writeForm.price}
+                            onChange={(e) => setWriteForm({ ...writeForm, price: e.target.value })}
+                        />
+                        <span className="input-group-text">원</span>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
+                
+                {/* 🌟 [핵심] 판매 상태 변경 UI (수정 모드 + 티켓 타입일 때만 노출) */}
+                {isEditing && (
+                    <div className="mb-4">
+                        <label className="form-label fw-bold">판매 상태 변경</label>
+                        <div className="d-flex gap-3 p-3 bg-white border rounded-3">
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="statusOptions"
+                                    id="statusOngoing"
+                                    value="ONGOING"
+                                    checked={writeForm.status === 'ONGOING'}
+                                    onChange={() => setWriteForm({ ...writeForm, status: 'ONGOING' })}
+                                />
+                                <label className="form-check-label fw-bold text-success" htmlFor="statusOngoing">
+                                    🟢 판매중
+                                </label>
+                            </div>
+                            <div className="form-check">
+                                <input
+                                    className="form-check-input"
+                                    type="radio"
+                                    name="statusOptions"
+                                    id="statusCompleted"
+                                    value="COMPLETED"
+                                    checked={writeForm.status === 'COMPLETED'}
+                                    onChange={() => setWriteForm({ ...writeForm, status: 'COMPLETED' })}
+                                    defaultChecked={writeForm.status === 'COMPLETED'}
+                                />
+                                <label className="form-check-label fw-bold text-secondary" htmlFor="statusCompleted">
+                                    🔴 판매완료
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
           )}
-
           <div className="mb-3">
             <input 
               type="text" 
@@ -562,7 +627,7 @@ function CommunityPage({ sportMode }) {
                 style={{ backgroundColor: themeColor }}
                 onClick={handleSubmitPost}
             >
-                등록 완료
+                {isEditing ? '수정 완료' : '등록 완료'}
             </button>
           </div>
         </div>
@@ -579,21 +644,38 @@ function CommunityPage({ sportMode }) {
           </button>
           <span className="text-muted">{selectedPost.type === 'ticket' ? '티켓 양도' : selectedPost.type === 'companion' ? '동행 구하기' : '통합 게시판'}</span>
         </div>
-
+        
         <div className="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
           <div className="card-body p-4 p-lg-5">
             <div className="mb-4 pb-4 border-bottom">
                 <div className="d-flex justify-content-between">
                     <h2 className="fw-bold mb-3">{selectedPost.title}</h2>
+                    
                     {currentUser && selectedPost.userId === currentUser.userId && (
-                        <button 
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={handleDeletePost}
-                        >
-                            <Trash2 size={16} /> 삭제
-                        </button>
+                        <div className="d-flex gap-2 flex-shrink-0">
+                            {/* 수정 버튼 */}
+                            <button 
+                                className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                                onClick={() => {
+                                    console.log("수정 시작:", selectedPost.id);
+                                    // TODO: 여기서 수정 모달을 열거나 수정 페이지로 이동하는 함수 호출
+                                    handleEditClick(selectedPost); 
+                                }}
+                            >
+                                <Edit size={16} /> 수정
+                            </button>
+                            
+                            {/* 삭제 버튼 */}
+                            <button 
+                                className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                onClick={handleDeletePost}
+                            >
+                                <Trash2 size={16} /> 삭제
+                            </button>
+                        </div>
                     )}
                 </div>
+                
                 <div className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2">
                         <div className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style={{width: '40px', height: '40px'}}>
@@ -829,12 +911,18 @@ function CommunityPage({ sportMode }) {
                         >
                             <div className="card-body p-4 d-flex align-items-center">
                                 <div className="me-4 text-center" style={{minWidth: '80px'}}>
+                                <label className="form-label fw-bold small text-muted mb-2">판매 상태</label>
+                                <div>
                                     {post.status === 'selling' ? (
-                                        <span className="badge bg-success mb-2">판매중</span>
+                                    <span className="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill w-100">
+                                        판매중
+                                    </span>
                                     ) : (
-                                        <span className="badge bg-secondary mb-2">판매완료</span>
+                                    <span className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-3 py-2 rounded-pill w-100">
+                                        판매완료
+                                    </span>
                                     )}
-                                    <div className="small text-muted fw-bold">{getTeamName(post.teamId)}</div>
+                                </div>
                                 </div>
                                 <div className="flex-grow-1">
                                     <h5 className="fw-bold mb-1 text-truncate">{post.title}</h5>
