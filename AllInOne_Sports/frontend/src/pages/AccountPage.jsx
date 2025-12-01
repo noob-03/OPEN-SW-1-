@@ -106,7 +106,6 @@ function AccountPage() {
                     // 3. 팀 객체 배열을 상태에 저장
                     setFollowedTeamIds(teamsList);
 
-                    // console.log(followedTeamIds);
                 } catch (err) {
                     console.warn("팔로우 목록 로딩 실패:", err);
                     setFollowedTeamIds([]);
@@ -118,25 +117,6 @@ function AccountPage() {
 
         fetchData();
     }, []); 
-
-   
-
-    // --- 2. 헬퍼 함수: 내 팔로우 팀 찾기 ---
-    // const getMyTeams = () => {
-    //     if (!userInfo || !userInfo.teamILove) return [];
-        
-    //     let teamIds = [];
-    //     // teamILove가 배열인지 문자열인지 확인 후 처리
-    //     if (Array.isArray(userInfo.teamILove)) {
-    //         teamIds = userInfo.teamILove;
-    //     } else if (typeof userInfo.teamILove === 'string') {
-    //         teamIds = userInfo.teamILove.split(',');
-    //     }
-            
-    //     return teamIds.map(id => MOCK_TEAMS.find(t => t.id === id.trim())).filter(Boolean);
-    // };
-
-    // --- 3. 핸들러 ---
 
     // 프로필 이미지 변경 (미리보기)
     const handleImageChange = (e) => {
@@ -274,9 +254,6 @@ function AccountPage() {
             </div>
         );
     }
-
-    // const myTeams = getMyTeams();
-    console.log(followedTeamIds);
 
     return (
         // 네비게이션 바가 보이도록 상단 padding 추가, 헤더 컴포넌트와 겹치지 않게 함
