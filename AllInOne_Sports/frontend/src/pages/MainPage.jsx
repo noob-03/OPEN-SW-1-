@@ -11,6 +11,7 @@ function MainPage({ sportMode }) {
 
     const [userInfo, setUserInfo] = useState({ nickname: "", email: "" });
     const [isLoading, setIsLoading] = useState(true);
+    const [popularPosts, setPopularPosts] = useState([]);
     const [error, setError] = useState("");
 
     // [추가] 경기 일정 데이터 상태
@@ -72,14 +73,55 @@ function MainPage({ sportMode }) {
         fetchData();
     }, [sportMode]); // sportMode가 바뀌면 경기 일정도 다시 불러옴
 
-    /* 🔹 Mock Data (인기 게시글, 뉴스) */
-    const popularPosts = [
-        { id: 1, title: "진짜 역대급 미친 경기력ㄷㄷ...", views: 100 },
-        { id: 2, title: "아스날 새 유니폼 바코드 논란", views: 100 },
-        { id: 3, title: "첼시 포체티노 전술 만족하나요?", views: 100 },
-        { id: 4, title: "(속보) 음바페 사우디 접촉 중...", views: 100 },
-        { id: 5, title: "이강인 팬서비스 직찍 공유합니다", views: 100 },
-    ];
+    useEffect(() => {
+        const fetchPopularPosts = async () => {
+            try {
+                // 인기글은 현재 탭과 무관하게 전체(ALL) 혹은 현재 스포츠 모드 기준 전체에서 산출한다고 가정
+                const queryParams = new URLSearchParams({
+                    sportsType: sportMode,
+                    postType: 'ALL' 
+                });
+
+                const response = await fetch(`${BACKEND_API_BASE_URL}/api/posts?${queryParams.toString()}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) return; // 위젯 로딩 실패는 조용히 처리하거나 별도 처리
+                
+                const data = await response.json();
+                
+                const mappedPosts = data.map(post => ({
+                    id: post.id,
+                    title: post.title,
+                    views: post.viewCount,
+                    likes: post.likeCount || 0 // likeCount가 없으면 0 처리
+                }));
+
+                // 좋아요(likes) 기준 내림차순 정렬 후 상위 5개 추출
+                const top5Posts = mappedPosts
+                    .sort((a, b) => b.likes - a.likes)
+                    .slice(0, 5);
+
+                setPopularPosts(top5Posts);
+            } catch (error) {
+                console.error("인기 게시글 로딩 에러:", error);
+            }
+        };
+
+        if (userInfo) {
+            fetchPopularPosts();
+        }
+    }, [sportMode, userInfo]);
+
+    // /* 🔹 Mock Data (인기 게시글, 뉴스) */
+    // const popularPosts = [
+    //     { id: 1, title: "진짜 역대급 미친 경기력ㄷㄷ...", views: 100 },
+    //     { id: 2, title: "아스날 새 유니폼 바코드 논란", views: 100 },
+    //     { id: 3, title: "첼시 포체티노 전술 만족하나요?", views: 100 },
+    //     { id: 4, title: "(속보) 음바페 사우디 접촉 중...", views: 100 },
+    //     { id: 5, title: "이강인 팬서비스 직찍 공유합니다", views: 100 },
+    // ];
 
     const newsData = [
         { id: 1, text: "All-in-One 페스티벌이 시작되었습니다!", date: "2025-11-20" },
@@ -274,15 +316,32 @@ function MainPage({ sportMode }) {
                         <div className="card p-4 border-0 shadow-sm" style={styles.glassCard}>
                             <h4 className="fw-bold mb-4">인기 게시글</h4>
                             <div className="d-flex flex-column gap-3">
-                                {popularPosts.map((post, index) => (
-                                    <div key={post.id} className="d-flex justify-content-between align-items-center">
-                                        <div className="d-flex align-items-center text-truncate">
-                                            <span className="fw-bold me-3 text-muted">{index + 1}.</span>
-                                            <span className="text-truncate fw-medium">{post.title}</span>
+                                {popularPosts.length > 0 ? (
+                                    popularPosts.map((post, index) => (
+                                        <div key={post.id} className="d-flex justify-content-between align-items-center">
+                                            <div className="d-flex align-items-center text-truncate" style={{ maxWidth: "70%" }}>
+                                                <span className={`fw-bold me-3 ${index < 3 ? 'text-danger' : 'text-muted'}`}>
+                                                    {index + 1}.
+                                                </span>
+                                                <span className="text-truncate fw-medium" title={post.title}>
+                                                    {post.title}
+                                                </span>
+                                            </div>
+                                            <div className="d-flex align-items-center small">
+                                                {/* 좋아요 수 표시 */}
+                                                <span className="text-danger me-2">
+                                                    ♥ {post.likes}
+                                                </span>
+                                                {/* 조회수 표시 */}
+                                                <span className="text-muted">
+                                                    조회 {post.views}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <span className="text-muted small">{post.views}</span>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <div className="text-center text-muted py-3">게시글이 없습니다.</div>
+                                )}
                             </div>
                         </div>
                     </div>

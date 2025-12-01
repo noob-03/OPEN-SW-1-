@@ -87,20 +87,34 @@ public class UserService extends DefaultOAuth2UserService implements UserDetails
     // 자체 로그인 회원 정보 수정
     @Transactional
     public Long updateUser(UserRequestDTO dto) throws AccessDeniedException {
-
         // 본인만 수정 가능 검증
         String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!sessionUsername.equals(dto.getUsername())) {
             throw new AccessDeniedException("본인 계정만 수정 가능");
         }
-
         // 조회
         UserEntity entity = userRepository.findByUsernameAndIsLockAndIsSocial(dto.getUsername(), false, false)
                 .orElseThrow(() -> new UsernameNotFoundException(dto.getUsername()));
 
         // 회원 정보 수정
         entity.updateUser(dto);
+        return userRepository.save(entity).getId();
+    }
 
+    @Transactional
+    public Long updatePassword(UserRequestDTO dto) throws AccessDeniedException {
+        // 본인만 수정 가능 검증
+        String sessionUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!sessionUsername.equals(dto.getUsername())) {
+            throw new AccessDeniedException("본인 계정만 수정 가능");
+        }
+        // 조회
+        UserEntity entity = userRepository.findByUsernameAndIsLockAndIsSocial(dto.getUsername(), false, false)
+                .orElseThrow(() -> new UsernameNotFoundException(dto.getUsername()));
+
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+        // 회원 정보 수정
+        entity.updatePassword(encodedPassword);
         return userRepository.save(entity).getId();
     }
 
