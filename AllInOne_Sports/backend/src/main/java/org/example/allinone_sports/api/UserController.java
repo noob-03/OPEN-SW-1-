@@ -57,6 +57,13 @@ public class UserController {
         return ResponseEntity.status(200).body(userService.updateUser(dto));
     }
 
+    @PutMapping(value = "/user/password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Long> updateUserPasswordApi(
+            @Validated(UserRequestDTO.updateGroup.class) @RequestBody UserRequestDTO dto
+    ) throws AccessDeniedException {
+        return ResponseEntity.status(200).body(userService.updatePassword(dto));
+    }
+
     // 유저 제거 (자체/소셜)
     @DeleteMapping(value = "/user", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Boolean> deleteUserApi(

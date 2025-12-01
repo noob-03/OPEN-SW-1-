@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchWithAccess } from "../util/fetchUtil";
 import { 
     User, Lock, Loader2, Camera, 
     LogOut, Trash2, ChevronRight, Shield, Heart 
@@ -34,14 +35,12 @@ function AccountPage() {
             return;
         }
 
-        const fetchUserInfo = async () => {
+       const fetchUserInfo = async () => {
             try {
-                const res = await fetch(`${BACKEND_API_BASE_URL}/user`, {
+                const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
                     method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                 });
 
                 if (res.ok) {
@@ -52,16 +51,11 @@ function AccountPage() {
                 } else {
                     throw new Error('Failed to fetch user info');
                 }
+
             } catch (err) {
                 console.error(err);
-                // 에러 발생 시(백엔드 미연동 등) 더미 데이터로 진행하여 UI 확인 가능하게 함
-                setUserInfo({ 
-                    username: 'user123', 
-                    email: 'user@example.com', 
-                    nickname: '스포츠팬', 
-                    teamILove: 'k1_05,kbo_01' // 예시: 콤마로 구분된 팀 ID 문자열
-                });
-                setNickname('스포츠팬');
+                alert("유저 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
+                navigate('/');
             } finally {
                 setIsLoading(false);
             }
@@ -108,28 +102,28 @@ function AccountPage() {
         try {
             const accessToken = localStorage.getItem("accessToken");
             // 닉네임 업데이트 요청
-            const res = await fetch(`${BACKEND_API_BASE_URL}/user/update`, {
-                method: 'PATCH',
+            const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                method: 'PUT',
                 headers: { 
-                    'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json' 
                 },
-                body: JSON.stringify({ nickname })
+                body: JSON.stringify({ 
+                    username: userInfo.username, // 현재 로그인한 유저의 아이디 (필수)
+                    nickname: nickname           // 변경할 닉네임
+                })
             });
 
             if (res.ok) {
                 setUserInfo(prev => ({ ...prev, nickname }));
                 setMessage({ type: 'success', text: '프로필이 업데이트되었습니다.' });
             } else {
-                // 실패했더라도 데모를 위해 성공 처리 흉내 (실제 구현 시 제거)
-                setUserInfo(prev => ({ ...prev, nickname }));
-                setMessage({ type: 'success', text: '프로필이 업데이트되었습니다. (데모)' });
+                const errorText = await res.text(); // 서버에서 보낸 에러 메시지 확인
+                console.error("Update failed:", errorText);
+                setMessage({ type: 'error', text: '프로필 업데이트에 실패했습니다.' });
             }
         } catch (error) {
-            console.error(error);
-            // 백엔드 연결 실패 시에도 UI 반영 (데모)
-            setUserInfo(prev => ({ ...prev, nickname }));
-            setMessage({ type: 'success', text: '프로필이 업데이트되었습니다. (데모)' });
+            console.error("Network error:", error);
+            setMessage({ type: 'error', text: '서버와 연결할 수 없습니다.' });
         } finally {
             setIsSaving(false);
         }
@@ -140,12 +134,13 @@ function AccountPage() {
         e.preventDefault();
         setMessage(null);
 
-        if (passwords.new !== passwords.confirm) {
-            setMessage({ type: 'error', text: '새 비밀번호가 일치하지 않습니다.' });
-            return;
-        }
         if (passwords.new.length < 4) {
             setMessage({ type: 'error', text: '비밀번호는 4자 이상이어야 합니다.' });
+            return;
+        }
+
+        if (passwords.new !== passwords.confirm) {
+            setMessage({ type: 'error', text: '새 비밀번호가 일치하지 않습니다.' });
             return;
         }
         
@@ -153,13 +148,16 @@ function AccountPage() {
         
         try {
             const accessToken = localStorage.getItem("accessToken");
-            const res = await fetch(`${BACKEND_API_BASE_URL}/user/update`, {
-                method: 'PATCH',
+            const res = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user/password`, {
+                method: 'PUT',
                 headers: { 
-                    'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json' 
                 },
-                body: JSON.stringify({ password: passwords.new })
+                body: JSON.stringify({ 
+                    username: userInfo.username, 
+                    password: passwords.new,
+                    nickname: userInfo.nickname
+                })
             });
 
             if(res.ok) {
@@ -167,15 +165,13 @@ function AccountPage() {
                 setPasswords({ new: '', confirm: '' });
                 setIsPasswordExpanded(false);
             } else {
-                // 실패 시 데모 처리
-                setMessage({ type: 'success', text: '비밀번호가 변경되었습니다. (데모)' });
-                setPasswords({ new: '', confirm: '' });
-                setIsPasswordExpanded(false);
+                const errorText = await res.text();
+                console.error("비밀번호 변경 실패:", errorText);
+                setMessage({ type: 'error', text: '비밀번호 변경에 실패했습니다. 입력 값을 확인해주세요.' });
             }
         } catch (e) {
-             setMessage({ type: 'success', text: '비밀번호가 변경되었습니다. (데모)' });
-             setPasswords({ new: '', confirm: '' });
-             setIsPasswordExpanded(false);
+            console.error("통신 오류:", e);
+            setMessage({ type: 'error', text: '서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.' });
         } finally {
             setIsSaving(false);
         }
@@ -192,7 +188,23 @@ function AccountPage() {
     // 회원 탈퇴
     const handleWithdrawal = async () => {
         if (window.confirm("정말로 탈퇴하시겠습니까? 탈퇴 후에는 계정을 복구할 수 없습니다.")) {
-            // 실제 구현 시: await fetch(`${BACKEND_API_BASE_URL}/user`, { method: 'DELETE', ... });
+            try {
+                const response = await fetchWithAccess(`${BACKEND_API_BASE_URL}/user`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({username: userInfo.username})
+                });
+        
+                if (response.ok) {
+                    alert("게시글이 삭제되었습니다.");
+                } else {
+                    alert("삭제 권한이 없거나 오류가 발생했습니다.");
+                }
+            } catch (error) {
+                console.error("삭제 실패:", error);
+                alert("삭제 중 오류가 발생했습니다.");
+            }
             alert("회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
             handleLogout();
         }
@@ -245,27 +257,29 @@ function AccountPage() {
                             <input type="file" ref={fileInputRef} className="d-none" accept="image/*" onChange={handleImageChange} />
                         </div>
 
-                        <h5 className="fw-bold mb-1">{userInfo?.username}</h5>
+                        <h5 className="fw-bold mb-1">{userInfo?.nickname}</h5>
                         <p className="text-muted small mb-4">{userInfo?.email}</p>
 
                         <div className="d-flex justify-content-center">
-                            <div className="input-group" style={{ maxWidth: '300px' }}>
-                                <span className="input-group-text bg-white"><User size={16} className="text-muted"/></span>
-                                <input 
-                                    type="text" 
-                                    className="form-control" 
-                                    value={nickname}
-                                    onChange={(e) => setNickname(e.target.value)}
-                                    placeholder="닉네임"
-                                />
-                                <button 
-                                    className="btn btn-primary px-3" 
-                                    onClick={handleSaveProfile}
-                                    disabled={isSaving}
-                                >
-                                    저장
-                                </button>
-                            </div>
+                            {!userInfo.social && (
+                                <div className="input-group" style={{ maxWidth: '300px' }}>
+                                    <span className="input-group-text bg-white"><User size={16} className="text-muted"/></span>
+                                    <input 
+                                        type="text" 
+                                        className="form-control" 
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        placeholder="닉네임"
+                                    />
+                                    <button 
+                                        className="btn btn-primary px-3" 
+                                        onClick={handleSaveProfile}
+                                        disabled={isSaving}
+                                    >
+                                        저장
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -306,17 +320,19 @@ function AccountPage() {
                     <div className="list-group list-group-flush rounded-bottom-4">
                         {/* 비밀번호 변경 아코디언 */}
                         <div className="list-group-item px-4 py-3 border-0">
-                            <div 
-                                className="d-flex justify-content-between align-items-center cursor-pointer"
-                                onClick={() => setIsPasswordExpanded(!isPasswordExpanded)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="d-flex align-items-center gap-3 text-dark">
-                                    <Lock size={16} className="text-muted"/>
-                                    <span className="fw-medium">비밀번호 변경</span>
+                            {!userInfo.social && (
+                                <div 
+                                    className="d-flex justify-content-between align-items-center cursor-pointer"
+                                    onClick={() => setIsPasswordExpanded(!isPasswordExpanded)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div className="d-flex align-items-center gap-3 text-dark">
+                                        <Lock size={16} className="text-muted"/>
+                                        <span className="fw-medium">비밀번호 변경</span>
+                                    </div>
+                                    <ChevronRight size={16} className={`text-muted transition-transform ${isPasswordExpanded ? 'rotate-90' : ''}`} style={{ transition: 'transform 0.2s' }} />
                                 </div>
-                                <ChevronRight size={16} className={`text-muted transition-transform ${isPasswordExpanded ? 'rotate-90' : ''}`} style={{ transition: 'transform 0.2s' }} />
-                            </div>
+                            )}
                             
                             {isPasswordExpanded && (
                                 <form onSubmit={handleChangePassword} className="mt-3 ps-1 pe-1">
