@@ -5,25 +5,25 @@ import axios from 'axios';
 function CalendarPage({ sportMode }) {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 1)); // 2025년 11월 기준
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 1));
   const [selectedLeague, setSelectedLeague] = useState('K1');
   const [filterMyTeam, setFilterMyTeam] = useState(false);
   const [followedTeamIds, setFollowedTeamIds] = useState(new Set()); // 내 팔로우 팀 ID 목록
 
   const themeColor = sportMode === 'soccer' ? '#5C67F2' : '#E03131';
 
-  // JWT 토큰 디코딩 (TeamPage와 동일 로직)
-  const getUserIdFromToken = (rawToken) => {
-    try {
-        if (!rawToken) return null;
-        const token = rawToken.replace(/^"|"$/g, '').trim();
-        if (!token) return null;
-        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const decoded = JSON.parse(jsonPayload);
-        return decoded.sub || decoded.id || decoded.userId;
-    } catch (e) { return null; }
-  };
+//   // JWT 토큰 디코딩 (TeamPage와 동일 로직)
+//   const getUserIdFromToken = (rawToken) => {
+//     try {
+//         if (!rawToken) return null;
+//         const token = rawToken.replace(/^"|"$/g, '').trim();
+//         if (!token) return null;
+//         const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+//         const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+//         const decoded = JSON.parse(jsonPayload);
+//         return decoded.sub || decoded.id || decoded.userId;
+//     } catch (e) { return null; }
+//   };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,13 +48,13 @@ function CalendarPage({ sportMode }) {
           // 야구면 'KBO', 축구면 선택된 리그(K1, K2)
           const leagueParam = sportMode === 'baseball' ? 'KBO' : selectedLeague;
           const year = currentDate.getFullYear();
-          const month = currentDate.getMonth() + 1; // JS 월은 0부터 시작하므로 +1
+          const month = currentDate.getMonth() + 1;
 
           const matchRes = await axios.get(`http://localhost:8080/api/matches`, {
               params: { 
                   league: leagueParam,
                   year: year,
-                  month: month
+                  month: 10
               }
           });
           setMatches(matchRes.data);

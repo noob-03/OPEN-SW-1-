@@ -237,12 +237,12 @@ function MainPage({ sportMode }) {
                             <div className="row g-3 mb-3">
                                 <div className="col-6">
                                     <div onClick={() => openPanel('news')} style={styles.actionButton}>
-                                        <Bell className="me-2" size={20} style={{ color: themeColor }} /> 새 소식 (3)
+                                        <Bell className="me-2" size={20} style={{ color: themeColor }} /> 새 소식
                                     </div>
                                 </div>
                                 <div className="col-6">
                                     <div onClick={handleMessagePage} style={styles.actionButton}>
-                                        <MessageSquare className="me-2" size={20} style={{ color: themeColor }} /> 쪽지 (5)
+                                        <MessageSquare className="me-2" size={20} style={{ color: themeColor }} /> 쪽지
                                     </div>
                                 </div>
                                 <div className="col-6">

@@ -40,9 +40,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("[웹소켓 연결 성공] Session ID: {}", session.getId());
     }
 
-    /**
-     * 클라이언트로부터 메시지 수신 시 호출 (핵심 로직)
-     */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
         try {
