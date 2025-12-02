@@ -117,27 +117,7 @@ function TicketPage({ sportMode }) {
                 </div>
             </div>
         )}
-
-        {/* 구단 선택 체크박스 */}
-        <div className="mb-3">
-            <label className="fw-bold text-muted small mb-2 d-block">구단 선택</label>
-            <div className="d-flex flex-wrap gap-3">
-                {currentLeagueTeams.map(team => (
-                    <div key={team.teamId} className="form-check">
-                        <input 
-                            className="form-check-input" 
-                            type="checkbox" 
-                            id={`team-${team.teamId}`}
-                            checked={selectedTeams.includes(team.teamId)}
-                            onChange={() => toggleTeam(team.teamId)}
-                        />
-                        <label className="form-check-label" htmlFor={`team-${team.teamId}`}>
-                            {team.name}
-                        </label>
-                    </div>
-                ))}
-            </div>
-        </div>
+        
       </div>
 
       {/* 예매 목록 */}
