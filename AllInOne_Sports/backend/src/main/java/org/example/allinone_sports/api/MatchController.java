@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/matches")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
 public class MatchController {
 
     private final MatchService matchService;
@@ -26,13 +25,14 @@ public class MatchController {
             @RequestParam int month
     ) {
         List<MatchEntity> matches = matchService.getMonthlyMatches(league, year, month);
-
         List<MatchDto> matchDTOs = matches.stream()
-                .map(MatchDto::fromEntity) // ⭐ 추가됨: Entity → DTO 변환
+                .map(MatchDto::fromEntity)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(matchDTOs);
     }
+
+
 
     // ⭐ 팀별 경기 조회 API
     @GetMapping("/by-team/{teamId}")

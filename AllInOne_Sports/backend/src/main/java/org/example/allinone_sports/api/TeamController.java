@@ -54,22 +54,4 @@ public class TeamController {
                 .map(TeamDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
-    // -------------------------------------------------------------------------
-    // 아래 엔드포인트들은 비효율적/중복으로 판단되어 제거했습니다.
-    // 이유: @GetMapping("/{teamId}")가 이미 TeamDto 전체(로고, SNS, 구장 등 모든 필드 포함)를
-    // 프론트엔드에 제공하고 있기 때문에, 단일 필드를 다시 조회할 필요가 없습니다.
-    // -------------------------------------------------------------------------
-    /*
-    @GetMapping("/{teamId}/logo")
-    public String getTeamLogo(@PathVariable Long teamId) { return teamService.getTeamLogo(teamId); }
-
-    @GetMapping("/name/{teamName}")
-    public TeamDto getTeamByName(@PathVariable String teamName) { ... }
-
-    @GetMapping("/name/{teamName}/sns")
-    public String getTeamSns(@PathVariable String teamName) { ... }
-
-    // ... 등 단일 필드 조회 엔드포인트들
-    */
 }
